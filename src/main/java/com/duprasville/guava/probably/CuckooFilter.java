@@ -54,6 +54,8 @@ import static java.math.RoundingMode.HALF_DOWN;
  * Mitzenmacher‡ Carnegie Mellon University, †Intel Labs, ‡Harvard University
  * https://www.cs.cmu.edu/~dga/papers/cuckoo-conext2014.pdf
  *
+ * <p>++</p>
+ *
  * @param <T> the type of objects that the {@code CuckooFilter} accepts
  * @author Brian Dupras
  * @author Alex Beal
