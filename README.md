@@ -11,7 +11,7 @@ Requires JDK 1.6 or higher and Google Guava 16.0.1 or higher (as of 1.0).
 
 Latest release
 --------------
-- 1.0-SNAPSHOT API Docs: [guava-probably][guava-probably-snapshot-api-docs], 30 December 2015.
+- `1.0-SNAPSHOT`: [API Docs][guava-probably-snapshot-api-docs], 30 December 2015.
 
 To add a dependency on Guava-Probably using Maven, use the following:
 
