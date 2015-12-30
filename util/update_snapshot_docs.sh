@@ -2,7 +2,7 @@
 
 # see http://benlimmer.com/2013/12/26/automatically-publish-javadoc-to-gh-pages-with-travis-ci/ for details
 
-set -e -u
+set -e -u -x
 
 if [ "$TRAVIS_REPO_SLUG" == "duprasville/guava-probably" ] && \
    [ "$TRAVIS_JDK_VERSION" == "oraclejdk7" ] && \
