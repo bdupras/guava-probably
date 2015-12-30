@@ -11,10 +11,7 @@ Requires JDK 1.6 or higher and Google Guava 16.0.1 or higher (as of 1.0).
 
 Latest release
 --------------
-
-The most recent release is [Guava-Probably 1.0][], released December 30, 2015.
-
-- 1.0 API Docs: [guava-probably][guava-probably-release-api-docs]
+- 1.0-SNAPSHOT API Docs: [guava-probably][guava-probably-snapshot-api-docs], 30 December 2015.
 
 To add a dependency on Guava-Probably using Maven, use the following:
 
@@ -22,7 +19,7 @@ To add a dependency on Guava-Probably using Maven, use the following:
 <dependency>
   <groupId>com.duprasville.guava</groupId>
   <artifactId>guava-probably</artifactId>
-  <version>1.0</version>
+  <version>1.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -30,7 +27,7 @@ To add a dependency using Gradle:
 
 ```
 dependencies {
-  compile 'com.duprasville.guava:guava-probably:1.0'
+  compile 'com.duprasville.guava:guava-probably:1.0-SNAPSHOT'
 }
 ```
 
@@ -55,3 +52,5 @@ Links
 - [GitHub project](https://github.com/bdupras/guava-probably)
 - [Issue tracker: report a defect or feature request](https://github.com/bdupras/guava-probably/issues/new)
 
+[guava-probably-release-api-docs]: http://bdupras.github.io/guava-probably/releases/1.0/api/docs/
+[guava-probably-snapshot-api-docs]: http://bdupras.github.io/guava-probably/releases/snapshot/api/docs/
