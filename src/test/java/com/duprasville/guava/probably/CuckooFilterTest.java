@@ -133,9 +133,10 @@ public class CuckooFilterTest extends TestCase {
         assertFalse(cf.mightContain(new Object()));
         for (int insertions = 0; insertions < expectedInsertions; insertions++) {
           Object o = new Object();
-          cf.put(o);
-          assertTrue("mightContain should return true when queried with an object previously " +
-              "added to the filter", cf.mightContain(o));
+          if (cf.put(o)) {
+            assertTrue("mightContain should return true when queried with an object previously " +
+                "added to the filter", cf.mightContain(o));
+          }
         }
       }
     }
