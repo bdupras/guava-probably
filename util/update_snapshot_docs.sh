@@ -22,5 +22,5 @@ if [ "$TRAVIS_REPO_SLUG" == "duprasville/guava-probably" ] && \
 
   git push -fq origin gh-pages > /dev/null
 
-  echo "Javadoc and JDiff published to gh-pages."
+  echo "Javadoc published to gh-pages."
 fi
