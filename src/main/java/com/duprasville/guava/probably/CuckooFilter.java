@@ -53,7 +53,7 @@ import static java.math.RoundingMode.HALF_DOWN;
  * Practically Better Than Bloom</i> Bin Fan, David G. Andersen, Michael Kaminsky†, Michael D.
  * Mitzenmacher‡ Carnegie Mellon University, †Intel Labs, ‡Harvard University
  * https://www.cs.cmu.edu/~dga/papers/cuckoo-conext2014.pdf
- * ++
+ *
  * @param <T> the type of objects that the {@code CuckooFilter} accepts
  * @author Brian Dupras
  * @author Alex Beal

@@ -13,7 +13,7 @@ script: mvn verify -U -Dmaven.javadoc.skip=true
 
 after_success:
   - util/update_snapshot_docs.sh
-#  - util/deploy_snapshot.sh # waiting on sonatype to approve the project :P
+  - util/deploy_snapshot.sh
 
 cache:
   directories:
