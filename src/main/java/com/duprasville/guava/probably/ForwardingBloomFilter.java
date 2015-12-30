@@ -57,7 +57,7 @@ abstract class ForwardingBloomFilter<T> extends ForwardingObject {
   }
 
   /**
-   * Returns the probability that {@linkplain #mightContain(T)} will erroneously return {@code true}
+   * Returns the probability that {@linkplain #mightContain(Object)} will erroneously return {@code true}
    * for an object that has not actually been put in the underlying {@code
    * com.google.common.hash.BloomFilter}.
    *
