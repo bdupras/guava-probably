@@ -44,7 +44,7 @@ Learn about data structures provided by Guava-Probably
 
 - [Cuckoo Filter: Practically Better Than Bloom](https://www.cs.cmu.edu/~dga/papers/cuckoo-conext2014.pdf)
 - [Bloom Filters by Example](http://billmill.org/bloomfilter-tutorial/)
-- [Google Guava BloomFilter](https://github.com/bdupras/guava-probably/wiki/HashingExplained#bloomfilter)
+- [Google Guava BloomFilter](https://github.com/google/guava/wiki/HashingExplained#bloomfilter)
 
 Links
 -----
