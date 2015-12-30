@@ -11,13 +11,14 @@ if [ "$TRAVIS_REPO_SLUG" == "duprasville/guava-probably" ] && \
   echo "Publishing Javadoc and JDiff..."
 
   cd $HOME
+  rm -Rf gh-pages
   git clone -q -b gh-pages https://${GH_TOKEN}@github.com/bdupras/guava-probably gh-pages > /dev/null
   cd gh-pages
 
   git config --global user.email "travis@travis-ci.org"
   git config --global user.name "travis-ci"
 
-  ./updaterelease.sh snapshot
+  mvn javadoc:javadoc
 
   git push -fq origin gh-pages > /dev/null
 
