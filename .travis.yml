@@ -12,8 +12,8 @@ install: mvn install -U -DskipTests=true
 script: mvn verify -U -Dmaven.javadoc.skip=true
 
 after_success:
-  - util/deploy_snapshot.sh
   - util/update_snapshot_docs.sh
+#  - util/deploy_snapshot.sh
 
 cache:
   directories:
@@ -21,9 +21,7 @@ cache:
 
 env:
   global:
-    - secure: "IPvqFwnLx/GXyImJuwM2MIvzDlBLqEXaQXFGJgAP1nbuenaLAloOOlqQ+iy2FDLBD/j+zjSbR3WWF9DIT4YxAS03Z6iMwxh7GCfk+tyhVtLQnwt7w1rquyhbrrGFsY5U0hr5q80Ww6J+zfp2yZ8aP9FHSy5ahNjqys4FtubOWLk="
-    - secure: "G77Wt2h2fceQ867i1uwOjUygrNeBpLRS8sxgfUZsO66dvlrx1wYFpZLLRIiPcy01peUTE2SvXIXLHKe9v3AlMonPibsQtvvfQSVfx+jgKwLZx9cuf/M5VQlD3etRUh4K/rBezlxWRroeeKcM2DQqiEVLsTDSyNZV9kVAjwfLTvM="
-    - secure: "wieIClPLTXS3QjDzqyp0TqIrVP/Q6iWNPOtcUQYfdDZJGwufE61laTFtzVKXZRb7uJ4GXDObcVU3AcpAwkTX/5sEksBxgv3TZ5Qi0mVx2GRmbE06ULLxi7sPnTCZ/VFtselDWcWArWGAcdCjW9gcCrgj5K/+sYpVKz9a8V+SDM4="
+    secure: MJY016432HZC8lTgwtyWLzmjaKZNVxHWRZ1M3en4X4u0qsYd9mwpZKjbBry5M2GY1laeMwa2XX/hAicxaSqkijul6NGTkV1tSmAkRHccqyu80+5uQuK0SYRMzXPxZdHGwwYG1X9Myene7HDs2FyGg8UezQphfFQFk0y+0EFuFR4C2hrGUJl8OBjzx/sF9/MhyyUfdZPDHVxpZ/cmw+TspmBZ08IVjl5HJcYQGki/Y2VZ4d7rKfI24EeL5mjivFzWR3j6hWLKpRqbnCtMzcXDs/z8qBzWPIu8D+PZQpZwN6OQM/JDYpDD4Vn/9+FGStbjCGOtSTigvA7639NY7nKiGEWBJTEhREP+7YwovYcj9oPXodTYpNg/Ai1tgCHw2zGBiD2eandCCYhyN2gHcfdq2lJ1PA4nUPNdj1zsTW7IUNbAmJ+gVd4uDvgIML7NPqbgl9hUaEx/DPzVc272sOYJOdtRgcg5sOIA7Ehnky6CWnpKCggv2Lww3dO5bSeMccAoB96RQKNFqXTAynGoBaLZnVZzgCobZ66YAYWSosM0oBzWVwDEkw32MiRoizplF3NfnSARaGzENyCV4Gay611dbXYF9HVrxp3oYFnptEbvvOKmUGgp0HpQiBemzJ0tuabs4Zu47MkCnalrU9K8BkoreaVJk8WP0/KPj53t/fWVUT4=
 
 branches:
   except:
