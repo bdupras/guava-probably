@@ -18,9 +18,9 @@ if [ "$TRAVIS_REPO_SLUG" == "duprasville/guava-probably" ] && \
   git config --global user.email "travis@travis-ci.org"
   git config --global user.name "travis-ci"
 
-  mvn javadoc:javadoc
+  ./updaterelease.sh snapshot
 
   git push -fq origin gh-pages > /dev/null
 
-  echo "Javadoc and JDiff published to gh-pages."
+  echo "Javadoc published to gh-pages."
 fi
