@@ -20,7 +20,7 @@ To add a dependency on Guava-Probably using Maven, use the following:
 
 ```xml
 <dependency>
-  <groupId>com.duprasville.guava.guava-probably</groupId>
+  <groupId>com.duprasville.guava</groupId>
   <artifactId>guava-probably</artifactId>
   <version>1.0</version>
 </dependency>
@@ -30,7 +30,7 @@ To add a dependency using Gradle:
 
 ```
 dependencies {
-  compile 'com.duprasville.guava.guava-probably:guava-probably:1.0'
+  compile 'com.duprasville.guava:guava-probably:1.0'
 }
 ```
 
