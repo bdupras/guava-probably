@@ -11,7 +11,7 @@ if [ "$TRAVIS_REPO_SLUG" == "duprasville/guava-probably" ] && \
   echo "Publishing Javadoc and JDiff..."
 
   cd $HOME
-  git clone -q -b gh-pages https://${GH_TOKEN}@github.com/google/guava gh-pages > /dev/null
+  git clone -q -b gh-pages https://${GH_TOKEN}@github.com/bdupras/guava-probably gh-pages > /dev/null
   cd gh-pages
 
   git config --global user.email "travis@travis-ci.org"
