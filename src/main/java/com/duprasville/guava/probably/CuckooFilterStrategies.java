@@ -45,7 +45,7 @@ enum CuckooFilterStrategies implements CuckooFilter.Strategy {
     private static final int MAX_RELOCATION_ATTEMPTS = 500;
     private final HashFunction hashFunction = Hashing.murmur3_128();
 
-    public <T> boolean put(T object, Funnel<? super T> funnel, CuckooTable table) {
+    public <T> boolean add(T object, Funnel<? super T> funnel, CuckooTable table) {
       final long hash64 = hash(object, funnel).asLong();
       final int hash1 = hash1(hash64);
       final int hash2 = hash2(hash64);
@@ -86,7 +86,7 @@ enum CuckooFilterStrategies implements CuckooFilter.Strategy {
       return kicker.nextInt(numEntriesPerBucket);
     }
 
-    public <T> boolean delete(T object, Funnel<? super T> funnel, CuckooTable table) {
+    public <T> boolean remove(T object, Funnel<? super T> funnel, CuckooTable table) {
       final long hash64 = hash(object, funnel).asLong();
       final int hash1 = hash1(hash64);
       final int hash2 = hash2(hash64);
@@ -97,7 +97,7 @@ enum CuckooFilterStrategies implements CuckooFilter.Strategy {
           || table.swapAnyEntry(CuckooTable.EMPTY_ENTRY, fingerprint, index2);
     }
 
-    public <T> boolean mightContain(T object, Funnel<? super T> funnel, CuckooTable table) {
+    public <T> boolean contains(T object, Funnel<? super T> funnel, CuckooTable table) {
       final long hash64 = hash(object, funnel).asLong();
       final int hash1 = hash1(hash64);
       final int hash2 = hash2(hash64);
@@ -107,7 +107,7 @@ enum CuckooFilterStrategies implements CuckooFilter.Strategy {
       return table.hasEntry(fingerprint, index1) || table.hasEntry(fingerprint, index2);
     }
 
-    public boolean putAll(CuckooTable thiz, CuckooTable that) {
+    public boolean addAll(CuckooTable thiz, CuckooTable that) {
       for (long index = 0; index < that.numBuckets; index++) {
         for (int entry = 0; entry < that.numEntriesPerBucket; entry++) {
           int fingerprint = that.readEntry(index, entry);

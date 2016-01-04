@@ -52,12 +52,12 @@ public class CuckooFilterTest extends TestCase {
 
     // Insert "numInsertions" even numbers into the CF.
     for (int i = 0; i < numInsertions * 2; i += 2) {
-      cf.put(Integer.toString(i));
+      cf.add(Integer.toString(i));
     }
 
     // Assert that the CF "might" have all of the even numbers.
     for (int i = 0; i < numInsertions * 2; i += 2) {
-      assertTrue(cf.mightContain(Integer.toString(i)));
+      assertTrue(cf.contains(Integer.toString(i)));
     }
 
     // Now we check for known false positives using a set of known false positives.
@@ -65,7 +65,7 @@ public class CuckooFilterTest extends TestCase {
     ImmutableSet<Integer> falsePositives = ImmutableSet.of(217, 329, 581, 707, 757, 805, 863);
     for (int i = 1; i < 900; i += 2) {
       if (!falsePositives.contains(i)) {
-        assertFalse("CF should not contain " + i, cf.mightContain(Integer.toString(i)));
+        assertFalse("CF should not contain " + i, cf.contains(Integer.toString(i)));
       }
     }
 
@@ -73,13 +73,13 @@ public class CuckooFilterTest extends TestCase {
     int expectedNumFpp = 25926;
     int actualNumFpp = 0;
     for (int i = 1; i < numInsertions * 2; i += 2) {
-      if (cf.mightContain(Integer.toString(i))) {
+      if (cf.contains(Integer.toString(i))) {
         actualNumFpp++;
       }
     }
     assertEquals(expectedNumFpp, actualNumFpp);
     // The normal order of (expected, actual) is reversed here on purpose.
-    assertEquals((double) expectedNumFpp / numInsertions, cf.expectedFpp(), 0.00035);
+    assertEquals((double) expectedNumFpp / numInsertions, cf.currentFpp(), 0.00035);
   }
 
   public void testCreateAndCheckBealDupras32CuckooFilterWithKnownUtf8FalsePositives() {
@@ -90,12 +90,12 @@ public class CuckooFilterTest extends TestCase {
 
     // Insert "numInsertions" even numbers into the CF.
     for (int i = 0; i < numInsertions * 2; i += 2) {
-      cf.put(Integer.toString(i));
+      cf.add(Integer.toString(i));
     }
 
     // Assert that the CF "might" have all of the even numbers.
     for (int i = 0; i < numInsertions * 2; i += 2) {
-      assertTrue(cf.mightContain(Integer.toString(i)));
+      assertTrue(cf.contains(Integer.toString(i)));
     }
 
     // Now we check for known false positives using a set of known false positives.
@@ -104,7 +104,7 @@ public class CuckooFilterTest extends TestCase {
         ImmutableSet.of(5, 315, 389, 443, 445, 615, 621, 703, 789, 861, 899);
     for (int i = 1; i < 900; i += 2) {
       if (!falsePositives.contains(i)) {
-        assertFalse("CF should not contain " + i, cf.mightContain(Integer.toString(i)));
+        assertFalse("CF should not contain " + i, cf.contains(Integer.toString(i)));
       }
     }
 
@@ -112,13 +112,13 @@ public class CuckooFilterTest extends TestCase {
     int expectedNumFpp = 26610;
     int actualNumFpp = 0;
     for (int i = 1; i < numInsertions * 2; i += 2) {
-      if (cf.mightContain(Integer.toString(i))) {
+      if (cf.contains(Integer.toString(i))) {
         actualNumFpp++;
       }
     }
     assertEquals(expectedNumFpp, actualNumFpp);
     // The normal order of (expected, actual) is reversed here on purpose.
-    assertEquals((double) expectedNumFpp / numInsertions, cf.expectedFpp(), 0.00037);
+    assertEquals((double) expectedNumFpp / numInsertions, cf.currentFpp(), 0.00037);
   }
 
   /**
@@ -126,16 +126,16 @@ public class CuckooFilterTest extends TestCase {
    */
   public void testBasic() {
     for (double fpr = 0.0000001; fpr < 0.1; fpr *= 10) {
-      for (int expectedInsertions = 1; expectedInsertions <= 10000; expectedInsertions *= 10) {
+      for (int capacity = 1; capacity <= 10000; capacity *= 10) {
         final CuckooFilter<Object> cf = CuckooFilter.create(BAD_FUNNEL,
-            expectedInsertions, fpr);
+            capacity, fpr);
 
-        assertFalse(cf.mightContain(new Object()));
-        for (int insertions = 0; insertions < expectedInsertions; insertions++) {
+        assertFalse(cf.contains(new Object()));
+        for (int insertions = 0; insertions < capacity; insertions++) {
           Object o = new Object();
-          if (cf.put(o)) {
+          if (cf.add(o)) {
             assertTrue("mightContain should return true when queried with an object previously " +
-                "added to the filter", cf.mightContain(o));
+                "added to the filter", cf.contains(o));
           }
         }
       }
@@ -243,12 +243,12 @@ public class CuckooFilterTest extends TestCase {
 
   public void testExpectedFpp() {
     CuckooFilter<Object> cf = CuckooFilter.create(BAD_FUNNEL, 10, 0.03);
-    double fpp = cf.expectedFpp();
+    double fpp = cf.currentFpp();
     assertEquals(0.0, fpp);
     // usually completed in less than 15 iterations
     while (fpp <= 0.03) { // fpp of a CF does not approach 1.0 like a BF does
-      boolean successful = cf.put(new Object());
-      double newFpp = cf.expectedFpp();
+      boolean successful = cf.add(new Object());
+      double newFpp = cf.currentFpp();
       // if successful, the new fpp is strictly higher, otherwise it is the same
       assertTrue(successful ? newFpp > fpp : newFpp == fpp);
       fpp = newFpp;
@@ -281,18 +281,18 @@ public class CuckooFilterTest extends TestCase {
 
   public void testEquals() {
     CuckooFilter<String> cf1 = CuckooFilter.create(Funnels.unencodedCharsFunnel(), 100);
-    cf1.put("1");
-    cf1.put("2");
+    cf1.add("1");
+    cf1.add("2");
 
     CuckooFilter<String> cf2 = CuckooFilter.create(Funnels.unencodedCharsFunnel(), 100);
-    cf2.put("1");
-    cf2.put("2");
+    cf2.add("1");
+    cf2.add("2");
 
     new EqualsTester()
         .addEqualityGroup(cf1, cf2)
         .testEquals();
 
-    cf2.put("3");
+    cf2.add("3");
 
     new EqualsTester()
         .addEqualityGroup(cf1)
@@ -310,16 +310,16 @@ public class CuckooFilterTest extends TestCase {
   public void testEquals2() {
     // numInsertions param undersized purposely to force underlying storage saturation
     CuckooFilter<String> cf1 = CuckooFilter.create(Funnels.unencodedCharsFunnel(), 2);
-    cf1.put("1");
-    cf1.put("2");
-    cf1.put("3");
-    cf1.put("4");
+    cf1.add("1");
+    cf1.add("2");
+    cf1.add("3");
+    cf1.add("4");
 
     CuckooFilter<String> cf2 = CuckooFilter.create(Funnels.unencodedCharsFunnel(), 2);
-    cf2.put("4");
-    cf2.put("3");
-    cf2.put("2");
-    cf2.put("1");
+    cf2.add("4");
+    cf2.add("3");
+    cf2.add("2");
+    cf2.add("1");
 
     assertTrue("equals should be true when tables are equivalent but ordered differently",
         cf1.equals(cf2));
@@ -360,8 +360,8 @@ public class CuckooFilterTest extends TestCase {
       CuckooFilter<String> cf = CuckooFilter.create(Funnels.unencodedCharsFunnel(), 100);
       for (int j = 0; j < 10; j++) {
         String value = new Object().toString();
-        boolean mightContain = cf.mightContain(value);
-        boolean put = cf.put(value);
+        boolean mightContain = cf.contains(value);
+        boolean put = cf.add(value);
         assertTrue(mightContain != put);
         boolean delete = cf.delete(value);
         assertTrue(put == delete);
@@ -374,21 +374,21 @@ public class CuckooFilterTest extends TestCase {
     int element2 = 2;
 
     CuckooFilter<Integer> cf1 = CuckooFilter.create(Funnels.integerFunnel(), 100);
-    cf1.put(element1);
-    assertTrue(cf1.mightContain(element1));
-    assertFalse(cf1.mightContain(element2));
+    cf1.add(element1);
+    assertTrue(cf1.contains(element1));
+    assertFalse(cf1.contains(element2));
 
     CuckooFilter<Integer> cf2 = CuckooFilter.create(Funnels.integerFunnel(), 100);
-    cf2.put(element2);
-    assertFalse(cf2.mightContain(element1));
-    assertTrue(cf2.mightContain(element2));
+    cf2.add(element2);
+    assertFalse(cf2.contains(element1));
+    assertTrue(cf2.contains(element2));
 
     assertTrue(cf1.isCompatible(cf2));
-    cf1.putAll(cf2);
-    assertTrue(cf1.mightContain(element1));
-    assertTrue(cf1.mightContain(element2));
-    assertFalse(cf2.mightContain(element1));
-    assertTrue(cf2.mightContain(element2));
+    cf1.addAll(cf2);
+    assertTrue(cf1.contains(element1));
+    assertTrue(cf1.contains(element2));
+    assertFalse(cf2.contains(element1));
+    assertTrue(cf2.contains(element2));
   }
 
   public void testPutAllFails() {
@@ -396,18 +396,18 @@ public class CuckooFilterTest extends TestCase {
 
     CuckooFilter<Integer> cf1 = CuckooFilter.create(Funnels.integerFunnel(), 100);
     // purposely fill buckets that contain entries for element
-    while (cf1.put(element)) {
-      assertTrue(cf1.mightContain(element));
+    while (cf1.add(element)) {
+      assertTrue(cf1.contains(element));
     }
 
     CuckooFilter<Integer> cf2 = CuckooFilter.create(Funnels.integerFunnel(), 100);
-    cf2.put(element);
-    assertTrue(cf2.mightContain(element));
+    cf2.add(element);
+    assertTrue(cf2.contains(element));
 
     assertTrue(cf1.isCompatible(cf2));
 
     assertFalse("putAll should return false when buckets at index & altIndex are already full",
-        cf1.putAll(cf2));
+        cf1.addAll(cf2));
   }
 
   public void testPutAllDifferentSizes() {
@@ -416,14 +416,14 @@ public class CuckooFilterTest extends TestCase {
 
     try {
       assertFalse(cf1.isCompatible(cf2));
-      cf1.putAll(cf2);
+      cf1.addAll(cf2);
       fail();
     } catch (IllegalArgumentException expected) {
     }
 
     try {
       assertFalse(cf2.isCompatible(cf1));
-      cf2.putAll(cf1);
+      cf2.addAll(cf1);
       fail();
     } catch (IllegalArgumentException expected) {
     }
@@ -433,7 +433,7 @@ public class CuckooFilterTest extends TestCase {
     CuckooFilter<Integer> cf1 = CuckooFilter.create(Funnels.integerFunnel(), 1);
     try {
       assertFalse(cf1.isCompatible(cf1));
-      cf1.putAll(cf1);
+      cf1.addAll(cf1);
       fail();
     } catch (IllegalArgumentException expected) {
     }
@@ -442,14 +442,14 @@ public class CuckooFilterTest extends TestCase {
   public void testJavaSerialization() {
     CuckooFilter<byte[]> cf = CuckooFilter.create(Funnels.byteArrayFunnel(), 100);
     for (int i = 0; i < 10; i++) {
-      cf.put(Ints.toByteArray(i));
+      cf.add(Ints.toByteArray(i));
     }
 
     CuckooFilter<byte[]> copy = SerializableTester.reserialize(cf);
     for (int i = 0; i < 10; i++) {
-      assertTrue(copy.mightContain(Ints.toByteArray(i)));
+      assertTrue(copy.contains(Ints.toByteArray(i)));
     }
-    assertEquals(cf.expectedFpp(), copy.expectedFpp());
+    assertEquals(cf.currentFpp(), copy.currentFpp());
 
     SerializableTester.reserializeAndAssert(cf);
   }
@@ -458,7 +458,7 @@ public class CuckooFilterTest extends TestCase {
     Funnel<byte[]> funnel = Funnels.byteArrayFunnel();
     CuckooFilter<byte[]> cf = CuckooFilter.create(funnel, 100);
     for (int i = 0; i < 100; i++) {
-      cf.put(Ints.toByteArray(i));
+      cf.add(Ints.toByteArray(i));
     }
 
     ByteArrayOutputStream out = new ByteArrayOutputStream();

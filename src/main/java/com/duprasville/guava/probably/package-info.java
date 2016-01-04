@@ -25,9 +25,9 @@
  * <ul>
  *
  * <li>{@link com.duprasville.guava.probably.ProbabilisticFilter} - interface defining basic methods
- * of probabilistic filters: {@link com.duprasville.guava.probably.ProbabilisticFilter#put(Object)},
- * {@link com.duprasville.guava.probably.ProbabilisticFilter#mightContain(Object)}, and {@link
- * com.duprasville.guava.probably.ProbabilisticFilter#expectedFpp()}.</li>
+ * of probabilistic filters: {@link com.duprasville.guava.probably.ProbabilisticFilter#add(Object)},
+ * {@link com.duprasville.guava.probably.ProbabilisticFilter#contains(Object)}, and {@link
+ * com.duprasville.guava.probably.ProbabilisticFilter#currentFpp()}.</li>
  *
  * <li>{@link com.duprasville.guava.probably.CuckooFilter} - cuckoo filter implementation that
  * supports deletion.</li>

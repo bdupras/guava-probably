@@ -36,14 +36,14 @@ abstract class ForwardingBloomFilter<T> extends ForwardingObject {
    *
    * @see <a target="guavadoc" href="http://google.github.io/guava/releases/snapshot/api/docs/com/google/common/hash/BloomFilter.html#mightContain(T)">com.google.common.hash.BloomFilter#mightContain(T)</a>
    */
-  public boolean mightContain(T object) {
-    return delegate().mightContain(object);
+  public boolean contains(T o) {
+    return delegate().mightContain(o);
   }
 
   /**
    * Puts an object into the underlying {@code com.google.common.hash.BloomFilter}. Ensures that
-   * subsequent invocations of {@link #mightContain(T)} with the same object will always return
-   * {@code true}.
+   * subsequent invocations of {@link #contains(T)} with the same object will always return {@code
+   * true}.
    *
    * @return true if the bloom filter's bits changed as a result of this operation. If the bits
    * changed, this is <i>definitely</i> the first time {@code object} has been added to the filter.
@@ -57,8 +57,8 @@ abstract class ForwardingBloomFilter<T> extends ForwardingObject {
   }
 
   /**
-   * Returns the probability that {@linkplain #mightContain(Object)} will erroneously return {@code true}
-   * for an object that has not actually been put in the underlying {@code
+   * Returns the probability that {@linkplain #contains(Object)} will erroneously return {@code
+   * true} for an object that has not actually been put in the underlying {@code
    * com.google.common.hash.BloomFilter}.
    *
    * <p>Ideally, this number should be close to the {@code fpp} parameter passed in {@linkplain
@@ -68,7 +68,7 @@ abstract class ForwardingBloomFilter<T> extends ForwardingObject {
    *
    * @see <a target="guavadoc" href="http://google.github.io/guava/releases/snapshot/api/docs/com/google/common/hash/BloomFilter.html#put(T)">com.google.common.hash.BloomFilter#put(T)</a>
    */
-  public double expectedFpp() {
+  public double currentFpp() {
     return delegate().expectedFpp();
   }
 

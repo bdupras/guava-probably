@@ -34,68 +34,68 @@ public class ProbabilisticFilterTest extends TestCase {
 
   public void testBloom() throws Exception {
     for (double fpp = 0.0000001; fpp < 0.1; fpp *= 10) {
-      for (int expectedInsertions = 100; expectedInsertions <= 10000; expectedInsertions *= 10) {
+      for (int capacity = 100; capacity <= 10000; capacity *= 10) {
         basicTests(
-            BloomFilter.create(Funnels.stringFunnel(UTF_8), expectedInsertions, fpp),
-            expectedInsertions, fpp);
+            BloomFilter.create(Funnels.stringFunnel(UTF_8), capacity, fpp),
+            capacity, fpp);
       }
     }
   }
 
   public void testCuckoo() throws Exception {
     for (double fpp = 0.0000001; fpp < 0.1; fpp *= 10) {
-      for (int expectedInsertions = 100; expectedInsertions <= 10000; expectedInsertions *= 10) {
+      for (int capacity = 100; capacity <= 10000; capacity *= 10) {
         basicTests(CuckooFilter.create(
-            Funnels.stringFunnel(UTF_8), expectedInsertions, fpp,
-            CuckooFilterStrategies.MURMUR128_BEALDUPRAS_32), expectedInsertions, fpp);
+            Funnels.stringFunnel(UTF_8), capacity, fpp,
+            CuckooFilterStrategies.MURMUR128_BEALDUPRAS_32), capacity, fpp);
       }
     }
   }
 
   private void basicTests(
-      final ProbabilisticFilter<CharSequence> filter, int numInsertions, double fpp) {
-    checkArgument(numInsertions > 0, "numInsertions (%s) must be > 0", numInsertions);
+      final ProbabilisticFilter<CharSequence> filter, int capacity, double fpp) {
+    checkArgument(capacity > 0, "capacity (%s) must be > 0", capacity);
     checkArgument(fpp > 0, "fpp (%s) must be > 0.0", fpp);
 
-    assertEquals("expectedFpp should be 0 when filter is empty", 0.0D, filter.expectedFpp());
+    assertEquals("expectedFpp should be 0 when filter is empty", 0.0D, filter.currentFpp());
 
     assertFalse("mightContain should return false when filter is empty",
-        filter.mightContain("Nope"));
+        filter.contains("Nope"));
 
-    assertTrue("put should return true when inserting the first item", filter.put("Yep!"));
+    assertTrue("put should return true when inserting the first item", filter.add("Yep!"));
 
     int falseInsertions = 0;
 
-    for (int i = 0; i < numInsertions - 1; i++) { //minus 1 since we've already inserted one above
-      double expectedFppBefore = filter.expectedFpp();
+    for (int i = 0; i < capacity - 1; i++) { //minus 1 since we've already inserted one above
+      double expectedFppBefore = filter.currentFpp();
 
-      if (filter.put(Integer.toString(i))) {
+      if (filter.add(Integer.toString(i))) {
         assertTrue("expectedFpp should not decrease after put returns true",
-            filter.expectedFpp() >= expectedFppBefore);
+            filter.currentFpp() >= expectedFppBefore);
       } else {
         falseInsertions++;
         assertEquals("expectedFpp should not change after put returns false",
-            expectedFppBefore, filter.expectedFpp());
+            expectedFppBefore, filter.currentFpp());
       }
 
       assertTrue("mightContain should return true when queried with an inserted item",
-          filter.mightContain(Integer.toString(i)));
+          filter.contains(Integer.toString(i)));
     }
 
     // fill up the filter until put has returned `true` numInsertion times in total
     //noinspection StatementWithEmptyBody
-    while (filter.put(Integer.toString(random.nextInt())) && (--falseInsertions > 0)) ;
+    while (filter.add(Integer.toString(random.nextInt())) && (--falseInsertions > 0)) ;
 
     assertWithMessage(
         "expectedFpp should be, approximately, at most the requested fpp after inserting the " +
             "requested number of items")
-        .that(filter.expectedFpp())
+        .that(filter.currentFpp())
         .isAtMost(fpp * 1.2);
 
     assertWithMessage(
         "expectedFpp should be, approximately, at least the half the requested fpp after " +
-            "inserting the requested number of items: " + numInsertions + ", " + fpp)
-        .that(filter.expectedFpp())
+            "inserting the requested number of items: " + capacity + ", " + fpp)
+        .that(filter.currentFpp())
         .isAtLeast(fpp * 0.5);
   }
 

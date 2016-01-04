@@ -59,9 +59,9 @@ public class CuckooFilterStrategiesTest extends TestCase {
 
     for (int l = 0; l < numInsertions; l++) {
       final long nextLong = random.nextLong();
-      assertTrue("Filter should put " + nextLong, filter.put(nextLong));
+      assertTrue("Filter should put " + nextLong, filter.add(nextLong));
       assertTrue("Filter should mightContain " + nextLong + " just after adding",
-          filter.mightContain(nextLong));
+          filter.contains(nextLong));
       assertEquals("Filter size should be the same as the number of insertions", l + 1,
           filter.size());
     }
@@ -70,7 +70,7 @@ public class CuckooFilterStrategiesTest extends TestCase {
     for (int l = 0; l < numInsertions; l++) {
       final long nextLong = random.nextLong();
       assertTrue("Filter should mightContain " + nextLong + " after adding a while ago",
-          filter.mightContain(nextLong));
+          filter.contains(nextLong));
     }
 
     random = new Random(1L);

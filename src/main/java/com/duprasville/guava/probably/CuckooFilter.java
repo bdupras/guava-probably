@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.util.Collection;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
@@ -43,7 +44,7 @@ import static java.math.RoundingMode.HALF_DOWN;
  * test with one-sided error: if it claims that an element is contained in it, this might be in
  * error, but if it claims that an element is <i>not</i> contained in it, then this is definitely
  * true. <p/> <p>The false positive probability ({@code FPP}) of a cuckoo filter is defined as the
- * probability that {@linkplain #mightContain(Object)} will erroneously return {@code true} for an
+ * probability that {@linkplain #contains(Object)} will erroneously return {@code true} for an
  * object that has not actually been put in the {@code CuckooFilter}. <p/> <p>Cuckoo filters are
  * serializable. They also support a more compact serial representation via the {@link #writeTo} and
  * {@link #readFrom} methods. Both serialized forms will continue to be supported by future versions
@@ -53,8 +54,6 @@ import static java.math.RoundingMode.HALF_DOWN;
  * Practically Better Than Bloom</i> Bin Fan, David G. Andersen, Michael Kaminsky†, Michael D.
  * Mitzenmacher‡ Carnegie Mellon University, †Intel Labs, ‡Harvard University
  * https://www.cs.cmu.edu/~dga/papers/cuckoo-conext2014.pdf
- *
- * <p>++</p>
  *
  * @param <T> the type of objects that the {@code CuckooFilter} accepts
  * @author Brian Dupras
@@ -77,34 +76,54 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    * underlying data. The mutations happen to <b>this</b> instance. Callers must ensure the cuckoo
    * filters are appropriately sized to avoid saturating them.
    *
-   * @param that The cuckoo filter to combine this cuckoo filter with. It is not mutated.
-   * @return true of the filters are successfully summed, false otherwise.
+   * @param f The cuckoo filter to combine this cuckoo filter with. It is not mutated.
+   * @return {@code true} if the filters are successfully summed.
    * @throws IllegalArgumentException if {@code isCompatible(that) == false}
    */
-  public boolean putAll(CuckooFilter<T> that) {
-    checkNotNull(that);
-    checkArgument(this != that, "Cannot combine a CuckooFilter with itself.");
-    checkArgument(this.isCompatible(that),
-        "Cannot combine incompatible CuckooFilter instances. CuckooFilters must have " +
-            "equivalent funnels; the same strategy; and the same number of buckets, " +
-            "entries per bucket, and bits per entry.");
+  public boolean addAll(ProbabilisticFilter<T> f) {
+    checkNotNull(f);
+    checkArgument(this != f, "Cannot combine a " + this.getClass().getSimpleName() + " with itself.");
+    checkArgument(f instanceof CuckooFilter, "Cannot combine a " +
+        this.getClass().getSimpleName() + " with a " + f.getClass().getSimpleName());
+    checkArgument(this.isCompatible(f), "Cannot combine incompatible filters. " +
+        this.getClass().getSimpleName() + " instances must have equivalent funnels; the same " +
+        "strategy; and the same number of buckets, entries per bucket, and bits per entry.");
 
-    return this.strategy.putAll(this.table, that.table);
+    return this.strategy.addAll(this.table, ((CuckooFilter) f).table);
+  }
+
+  /**
+   * Adds all of the elements in the specified collection to the filter. Some elements may have been
+   * added to the filter even when {@code false} is returned. In this case, the caller may {@link
+   * #delete(Object)} the additions by comparing the filter {@link #size()} before and after the
+   * invocation, knowing that additions from {@code c} occurred in {@code c}'s iteration order. The
+   * behavior of this operation is undefined if the specified collection is modified while the
+   * operation is in progress.
+   *
+   * @return {@code true} if all elements of the collection were successfully added
+   */
+  public boolean addAll(Collection<? extends T> c) {
+    for (T e : c) {
+      if (!add(e)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   interface Strategy extends Serializable {
 
-    <T> boolean put(T object, Funnel<? super T> funnel, CuckooFilterStrategies.CuckooTable table);
+    <T> boolean add(T object, Funnel<? super T> funnel, CuckooFilterStrategies.CuckooTable table);
 
-    <T> boolean delete(
+    <T> boolean remove(
         T object, Funnel<? super T> funnel, CuckooFilterStrategies.CuckooTable table);
 
-    <T> boolean mightContain(
+    <T> boolean contains(
         T object, Funnel<? super T> funnel, CuckooFilterStrategies.CuckooTable table);
 
     int ordinal();
 
-    boolean putAll(
+    boolean addAll(
         CuckooFilterStrategies.CuckooTable thiz, CuckooFilterStrategies.CuckooTable that);
 
     boolean equivalent(
@@ -114,12 +133,16 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
   private final CuckooFilterStrategies.CuckooTable table;
   private final Funnel<? super T> funnel;
   private final Strategy strategy;
+  private final long capacity;
+  private final double fpp;
 
   /**
    * Creates a CuckooFilter.
    */
   private CuckooFilter(
-      CuckooFilterStrategies.CuckooTable table, Funnel<? super T> funnel, Strategy strategy) {
+      CuckooFilterStrategies.CuckooTable table, Funnel<? super T> funnel, Strategy strategy, long capacity, double fpp) {
+    this.capacity = capacity;
+    this.fpp = fpp;
     this.table = checkNotNull(table);
     this.funnel = checkNotNull(funnel);
     this.strategy = checkNotNull(strategy);
@@ -131,7 +154,7 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    */
   @CheckReturnValue
   public CuckooFilter<T> copy() {
-    return new CuckooFilter<T>(table.copy(), funnel, strategy);
+    return new CuckooFilter<T>(table.copy(), funnel, strategy, capacity, fpp);
   }
 
   /**
@@ -139,22 +162,22 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    * false} if this is <i>definitely</i> not the case.
    */
   @CheckReturnValue
-  public boolean mightContain(T object) {
-    return strategy.mightContain(object, funnel, table);
+  public boolean contains(T o) {
+    return strategy.contains(o, funnel, table);
   }
 
   /**
    * Puts an object into this {@code CuckooFilter}. Ensures that subsequent invocations of {@link
-   * #mightContain(Object)} with the same object will always return {@code true}.
+   * #contains(Object)} with the same object will always return {@code true}.
    *
    * @return true if {@code object} has been successfully added to the filter. false if {@code
    * object} was not added to the filter, as would be the case when the filter gets saturated. This
-   * may occur even if actualInsertions < expectedInsertions. e.g. If {@code object} has already
-   * been added 2*b times to the filter, a subsequent attempt will fail.
+   * may occur even if actualInsertions < capacity. e.g. If {@code object} has already been added
+   * 2*b times to the filter, a subsequent attempt will fail.
    */
   @CheckReturnValue
-  public boolean put(T object) {
-    return strategy.put(object, funnel, table);
+  public boolean add(T e) {
+    return strategy.add(e, funnel, table);
   }
 
   /**
@@ -171,7 +194,7 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    */
   @CheckReturnValue
   public boolean delete(T object) {
-    return strategy.delete(object, funnel, table);
+    return strategy.remove(object, funnel, table);
   }
 
 
@@ -180,6 +203,18 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    */
   public long size() {
     return table.size();
+  }
+
+  public long capacity() {
+    return capacity;
+  }
+
+  public double fpp() {
+    return fpp;
+  }
+
+  public boolean isEmpty() {
+    return 0 == size();
   }
 
   /**
@@ -192,7 +227,7 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
 
 
   /**
-   * Returns the probability that {@linkplain #mightContain(Object)} will erroneously return {@code
+   * Returns the probability that {@linkplain #contains(Object)} will erroneously return {@code
    * true} for an object that has not actually been put in the {@code CuckooFilter}. <p/>
    * <p>Ideally, this number should be close to the {@code fpp} parameter passed in {@linkplain
    * #create(Funnel, int, double)}, or smaller. If it is significantly higher, it is usually the
@@ -200,7 +235,7 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    * degenerating it.
    */
   @CheckReturnValue
-  public double expectedFpp() {
+  public double currentFpp() {
     return table.expectedFpp();
   }
 
@@ -209,15 +244,17 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    * filters to be compatible, they must: <p/> <ul> <li>not be the same instance <li>have tables of
    * the same dimensions <li>have the same strategy <li>have equal funnels <ul>
    *
-   * @param that The cuckoo filter to check for compatibility.
+   * @param f The cuckoo filter to check for compatibility.
    */
   @CheckReturnValue
-  public boolean isCompatible(CuckooFilter<T> that) {
-    checkNotNull(that);
-    return (this != that)
-        && (this.table.isCompatible(that.table))
-        && (this.strategy.equals(that.strategy))
-        && (this.funnel.equals(that.funnel));
+  public boolean isCompatible(ProbabilisticFilter<T> f) {
+    checkNotNull(f);
+
+    return (this != f)
+        && (f instanceof CuckooFilter)
+        && (this.table.isCompatible(((CuckooFilter) f).table))
+        && (this.strategy.equals(((CuckooFilter) f).strategy))
+        && (this.funnel.equals(((CuckooFilter) f).funnel));
   }
 
   @Override
@@ -250,18 +287,16 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    * as a Java enum. This has the benefit of ensuring proper serialization and deserialization,
    * which is important since {@link #equals} also relies on object identity of funnels.
    *
-   * @param funnel             the funnel of T's that the constructed {@code CuckooFilter<T>} will
-   *                           use
-   * @param expectedInsertions the number of expected insertions to the constructed {@code
-   *                           CuckooFilter<T>}; must be positive
-   * @param fpp                the desired false positive probability (must be positive and less
-   *                           than 1.0)
+   * @param funnel   the funnel of T's that the constructed {@code CuckooFilter<T>} will use
+   * @param capacity the number of expected insertions to the constructed {@code CuckooFilter<T>};
+   *                 must be positive
+   * @param fpp      the desired false positive probability (must be positive and less than 1.0)
    * @return a {@code CuckooFilter}
    */
   @CheckReturnValue
   public static <T> CuckooFilter<T> create(
-      Funnel<? super T> funnel, int expectedInsertions, double fpp) {
-    return create(funnel, (long) expectedInsertions, fpp);
+      Funnel<? super T> funnel, int capacity, double fpp) {
+    return create(funnel, (long) capacity, fpp);
   }
 
   /**
@@ -273,38 +308,36 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    * as a Java enum. This has the benefit of ensuring proper serialization and deserialization,
    * which is important since {@link #equals} also relies on object identity of funnels.
    *
-   * @param funnel             the funnel of T's that the constructed {@code CuckooFilter<T>} will
-   *                           use
-   * @param expectedInsertions the number of expected insertions to the constructed {@code
-   *                           CuckooFilter<T>}; must be positive
-   * @param fpp                the desired false positive probability (must be positive and less
-   *                           than 1.0).
+   * @param funnel   the funnel of T's that the constructed {@code CuckooFilter<T>} will use
+   * @param capacity the number of expected insertions to the constructed {@code CuckooFilter<T>};
+   *                 must be positive
+   * @param fpp      the desired false positive probability (must be positive and less than 1.0).
    * @return a {@code CuckooFilter}
    */
   @CheckReturnValue
   public static <T> CuckooFilter<T> create(
-      Funnel<? super T> funnel, long expectedInsertions, double fpp) {
-    return create(funnel, expectedInsertions, fpp,
+      Funnel<? super T> funnel, long capacity, double fpp) {
+    return create(funnel, capacity, fpp,
         CuckooFilterStrategies.MURMUR128_BEALDUPRAS_32);
   }
 
   @VisibleForTesting
-  static <T> CuckooFilter<T> create(Funnel<? super T> funnel, long expectedInsertions, double fpp,
+  static <T> CuckooFilter<T> create(Funnel<? super T> funnel, long capacity, double fpp,
                                     Strategy strategy) {
     checkNotNull(funnel);
-    checkArgument(expectedInsertions > 0, "Expected insertions (%s) must be > 0",
-        expectedInsertions);
+    checkArgument(capacity > 0, "Expected insertions (%s) must be > 0",
+        capacity);
     checkArgument(fpp > 0.0D, "False positive probability (%s) must be > 0.0", fpp);
     checkArgument(fpp < 1.0D, "False positive probability (%s) must be < 1.0", fpp);
     checkNotNull(strategy);
 
     int numEntriesPerBucket = optimalEntriesPerBucket(fpp);
-    long numBuckets = optimalNumberOfBuckets(expectedInsertions, numEntriesPerBucket);
+    long numBuckets = optimalNumberOfBuckets(capacity, numEntriesPerBucket);
     int numBitsPerEntry = optimalBitsPerEntry(fpp, numEntriesPerBucket);
 
     try {
       return new CuckooFilter<T>(new CuckooFilterStrategies.CuckooTable(numBuckets,
-          numEntriesPerBucket, numBitsPerEntry), funnel, strategy);
+          numEntriesPerBucket, numBitsPerEntry), funnel, strategy, capacity, fpp);
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Could not create CuckooFilter of " + numBuckets +
           " buckets, " + numEntriesPerBucket + " entries per bucket, " + numBitsPerEntry +
@@ -322,15 +355,14 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    * deserialization, which is important since {@link #equals} also relies on object identity of
    * funnels.
    *
-   * @param funnel             the funnel of T's that the constructed {@code CuckooFilter<T>} will
-   *                           use
-   * @param expectedInsertions the number of expected insertions to the constructed {@code
-   *                           CuckooFilter<T>}; must be positive
+   * @param funnel   the funnel of T's that the constructed {@code CuckooFilter<T>} will use
+   * @param capacity the number of expected insertions to the constructed {@code CuckooFilter<T>};
+   *                 must be positive
    * @return a {@code CuckooFilter}
    */
   @CheckReturnValue
-  public static <T> CuckooFilter<T> create(Funnel<? super T> funnel, int expectedInsertions) {
-    return create(funnel, (long) expectedInsertions);
+  public static <T> CuckooFilter<T> create(Funnel<? super T> funnel, int capacity) {
+    return create(funnel, (long) capacity);
   }
 
   /**
@@ -343,15 +375,14 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    * deserialization, which is important since {@link #equals} also relies on object identity of
    * funnels.
    *
-   * @param funnel             the funnel of T's that the constructed {@code CuckooFilter<T>} will
-   *                           use
-   * @param expectedInsertions the number of expected insertions to the constructed {@code
-   *                           CuckooFilter<T>}; must be positive
+   * @param funnel   the funnel of T's that the constructed {@code CuckooFilter<T>} will use
+   * @param capacity the number of expected insertions to the constructed {@code CuckooFilter<T>};
+   *                 must be positive
    * @return a {@code CuckooFilter}
    */
   @CheckReturnValue
-  public static <T> CuckooFilter<T> create(Funnel<? super T> funnel, long expectedInsertions) {
-    return create(funnel, expectedInsertions, 0.032D);
+  public static <T> CuckooFilter<T> create(Funnel<? super T> funnel, long capacity) {
+    return create(funnel, capacity, 0.032D);
   }
 
   /*
@@ -476,6 +507,8 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
     final int numBitsPerEntry;
     final Funnel<? super T> funnel;
     final Strategy strategy;
+    final long capacity;
+    final double fpp;
 
     SerialForm(CuckooFilter<T> filter) {
       this.data = filter.table.data;
@@ -486,14 +519,15 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
       this.checksum = filter.table.checksum();
       this.funnel = filter.funnel;
       this.strategy = filter.strategy;
+      this.capacity = filter.capacity;
+      this.fpp = filter.fpp;
     }
 
     Object readResolve() {
       return new CuckooFilter<T>(
-          new CuckooFilterStrategies.CuckooTable(
-              data, size, checksum, numBuckets, numEntriesPerBucket, numBitsPerEntry),
-          funnel,
-          strategy);
+          new CuckooFilterStrategies
+              .CuckooTable(data, size, checksum, numBuckets, numEntriesPerBucket, numBitsPerEntry),
+          funnel, strategy, capacity, fpp);
     }
 
     private static final long serialVersionUID = 1;
@@ -509,6 +543,8 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
     /*
      * Serial form:
      * 1 signed byte for the strategy
+     * 1 big endian long, the number of capacity
+     * 1 IEEE 754 floating-point double, the expected FPP
      * 1 big endian long, the number of entries in our filter
      * 1 big endian long, the checksum of entries in our filter
      * 1 big endian long for the number of buckets
@@ -519,12 +555,15 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
      */
     DataOutputStream dout = new DataOutputStream(out);
     dout.writeByte(SignedBytes.checkedCast(strategy.ordinal()));
+    dout.writeLong(capacity);
+    dout.writeDouble(fpp);
     dout.writeLong(table.size());
     dout.writeLong(table.checksum());
     dout.writeLong(table.numBuckets);
     dout.writeInt(table.numEntriesPerBucket);
     dout.writeInt(table.numBitsPerEntry);
     dout.writeInt(table.data.length);
+
     for (long value : table.data) {
       dout.writeLong(value);
     }
@@ -545,6 +584,8 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
     checkNotNull(in, "InputStream");
     checkNotNull(funnel, "Funnel");
     int strategyOrdinal = -1;
+    long capacity = -1L;
+    double fpp = -1.0D;
     long size = -1L;
     long checksum = -1L;
     long numBuckets = -1L;
@@ -557,6 +598,8 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
       // add non-stateless strategies (for which we've reserved negative ordinals; see
       // Strategy.ordinal()).
       strategyOrdinal = din.readByte();
+      capacity = din.readLong();
+      fpp = din.readDouble();
       size = din.readLong();
       checksum = din.readLong();
       numBuckets = din.readLong();
@@ -570,14 +613,15 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
         data[i] = din.readLong();
       }
       return new CuckooFilter<T>(
-          new CuckooFilterStrategies.CuckooTable(
-              data, size, checksum, numBuckets, numEntriesPerBucket, numBitsPerEntry),
-          funnel,
-          strategy);
+          new CuckooFilterStrategies
+              .CuckooTable(data, size, checksum, numBuckets, numEntriesPerBucket, numBitsPerEntry),
+          funnel, strategy, capacity, fpp);
     } catch (RuntimeException e) {
       IOException ioException = new IOException(
           "Unable to deserialize CuckooFilter from InputStream."
               + " strategyOrdinal: " + strategyOrdinal
+              + " capacity: " + capacity
+              + " fpp: " + fpp
               + " size: " + size
               + " checksum: " + checksum
               + " numBuckets: " + numBuckets
@@ -592,14 +636,14 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
   @VisibleForTesting
   /**
    * Returns the number of longs required by a CuckooTable for storage given the dimensions
-   * chosen by the CuckooFilter to support expectedInsertions @ fpp.
+   * chosen by the CuckooFilter to support capacity @ fpp.
    *
    * CuckooTable current impl uses a single long[] for data storage, so the calculated value must
    * be <= Integer.MAX_VALUE at this time.
    */
-  static int calculateDataLength(long expectedInsertions, double fpp) {
+  static int calculateDataLength(long capacity, double fpp) {
     return CuckooFilterStrategies.CuckooTable.calculateDataLength(
-        optimalNumberOfBuckets(expectedInsertions, optimalEntriesPerBucket(fpp)),
+        optimalNumberOfBuckets(capacity, optimalEntriesPerBucket(fpp)),
         optimalEntriesPerBucket(fpp),
         optimalBitsPerEntry(fpp, optimalEntriesPerBucket(fpp)));
   }
