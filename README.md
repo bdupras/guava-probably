@@ -3,6 +3,7 @@ Guava-Probably: Probabilistic data structures for Guava
 
 [![Build Status](https://travis-ci.org/bdupras/guava-probably.svg?branch=master)](https://travis-ci.org/bdupras/guava-probably)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.duprasville.guava.guava-probably/guava-probably/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.duprasville.guava.guava-probably/guava-probably/)
+[![Stories in Ready](https://badge.waffle.io/bdupras/guava-probably.svg?label=ready&title=Ready)](http://waffle.io/bdupras/guava-probably)
 
 The Guava-Probably project provides several probabilistic data structures for Guava.
 
