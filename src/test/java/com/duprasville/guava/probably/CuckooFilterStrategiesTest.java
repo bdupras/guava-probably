@@ -77,14 +77,14 @@ public class CuckooFilterStrategiesTest extends TestCase {
     for (int l = 0; l < numInsertions; l++) {
       final long nextLong = random.nextLong();
       assertTrue("Filter should delete " + nextLong + " after adding a while ago",
-          filter.delete(nextLong));
+          filter.remove(nextLong));
       assertEquals("Filter size should be the same as the number of insertions less the " +
           "number of deletions", numInsertions - l - 1, filter.size());
     }
 
     final long nextLong = random.nextLong();
     assertFalse("Filter should NOT delete " + nextLong + " since it should be empty!!",
-        filter.delete(nextLong));
+        filter.remove(nextLong));
   }
 
   public void testFingerprintBoundaries() throws Exception {

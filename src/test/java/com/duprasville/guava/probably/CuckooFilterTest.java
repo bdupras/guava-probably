@@ -299,7 +299,7 @@ public class CuckooFilterTest extends TestCase {
         .addEqualityGroup(cf2)
         .testEquals();
 
-    cf2.delete("3");
+    cf2.remove("3");
 
     new EqualsTester()
         .addEqualityGroup(cf1, cf2)
@@ -363,7 +363,7 @@ public class CuckooFilterTest extends TestCase {
         boolean mightContain = cf.contains(value);
         boolean put = cf.add(value);
         assertTrue(mightContain != put);
-        boolean delete = cf.delete(value);
+        boolean delete = cf.remove(value);
         assertTrue(put == delete);
       }
     }

@@ -22,7 +22,7 @@ import javax.annotation.CheckReturnValue;
  * A probabilistic filter offers an approximate containment test with one-sided error: if it claims
  * that an object is contained in it, this might be in error, but if it claims that an object is
  * <i>not</i> contained in it, then this is definitely true. <p/> <p>The false positive probability
- * ({@code FPP}) of a probabilistic filter is defined as the probability that {@linkplain
+ * ({@code FPP}) of a probabilistic filter is defined as the probability that {@link
  * #contains(Object)} will erroneously return {@code true} for an object that has not actually been
  * added to the {@code ProbabilisticFilter}. <p/>
  *
@@ -47,7 +47,7 @@ public interface ProbabilisticFilter<E> {
    *
    * @param f The filter to combine {@code this} filter with. {@code f} is not mutated.
    * @return {@code true} if the operation was successful, {@code false} otherwise.
-   * @throws IllegalArgumentException if {@code isCompatible(f) == false}
+   * @throws IllegalArgumentException if {@link #isCompatible(ProbabilisticFilter)}{@code == false}
    */
   @CheckReturnValue
   boolean addAll(ProbabilisticFilter<E> f);
