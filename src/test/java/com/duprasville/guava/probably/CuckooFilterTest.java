@@ -24,6 +24,8 @@ import com.google.common.testing.EqualsTester;
 import com.google.common.testing.NullPointerTester;
 import com.google.common.testing.SerializableTester;
 
+import com.duprasville.guava.probably.cuckoo.CuckooFilterStrategies;
+
 import junit.framework.TestCase;
 
 import java.io.ByteArrayInputStream;
@@ -48,7 +50,7 @@ public class CuckooFilterTest extends TestCase {
     int numInsertions = 1000000;
     CuckooFilter<String> cf = CuckooFilter.create(
         Funnels.unencodedCharsFunnel(), numInsertions, 0.03,
-        CuckooFilterStrategies.MURMUR128_BEALDUPRAS_32);
+        CuckooFilterStrategies.MURMUR128_BEALDUPRAS_32.strategy());
 
     // Insert "numInsertions" even numbers into the CF.
     for (int i = 0; i < numInsertions * 2; i += 2) {
@@ -86,7 +88,7 @@ public class CuckooFilterTest extends TestCase {
     int numInsertions = 1000000;
     CuckooFilter<String> cf = CuckooFilter.create(
         Funnels.stringFunnel(UTF_8), numInsertions, 0.03,
-        CuckooFilterStrategies.MURMUR128_BEALDUPRAS_32);
+        CuckooFilterStrategies.MURMUR128_BEALDUPRAS_32.strategy());
 
     // Insert "numInsertions" even numbers into the CF.
     for (int i = 0; i < numInsertions * 2; i += 2) {
@@ -465,16 +467,6 @@ public class CuckooFilterTest extends TestCase {
     cf.writeTo(out);
 
     assertEquals(cf, CuckooFilter.readFrom(new ByteArrayInputStream(out.toByteArray()), funnel));
-  }
-
-  /**
-   * This test will fail whenever someone updates/reorders the CuckooFilterStrategies constants.
-   * Only appending a new constant is allowed.
-   */
-  public void testCuckooFilterStrategies() {
-    assertThat(CuckooFilterStrategies.values()).hasLength(1);
-    assertEquals(CuckooFilterStrategies.MURMUR128_BEALDUPRAS_32,
-        CuckooFilterStrategies.values()[0]);
   }
 
   static final Funnel<Object> BAD_FUNNEL = new Funnel<Object>() {

@@ -20,6 +20,10 @@ import com.google.common.base.Objects;
 import com.google.common.hash.Funnel;
 import com.google.common.primitives.SignedBytes;
 
+import com.duprasville.guava.probably.cuckoo.CuckooFilterStrategies;
+import com.duprasville.guava.probably.cuckoo.CuckooTable;
+import com.duprasville.guava.probably.cuckoo.Strategy;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -112,26 +116,7 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
     return true;
   }
 
-  interface Strategy extends Serializable {
-
-    <T> boolean add(T object, Funnel<? super T> funnel, CuckooFilterStrategies.CuckooTable table);
-
-    <T> boolean remove(
-        T object, Funnel<? super T> funnel, CuckooFilterStrategies.CuckooTable table);
-
-    <T> boolean contains(
-        T object, Funnel<? super T> funnel, CuckooFilterStrategies.CuckooTable table);
-
-    int ordinal();
-
-    boolean addAll(
-        CuckooFilterStrategies.CuckooTable thiz, CuckooFilterStrategies.CuckooTable that);
-
-    boolean equivalent(
-        CuckooFilterStrategies.CuckooTable thiz, CuckooFilterStrategies.CuckooTable that);
-  }
-
-  private final CuckooFilterStrategies.CuckooTable table;
+  private final CuckooTable table;
   private final Funnel<? super T> funnel;
   private final Strategy strategy;
   private final long capacity;
@@ -141,7 +126,7 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    * Creates a CuckooFilter.
    */
   private CuckooFilter(
-      CuckooFilterStrategies.CuckooTable table, Funnel<? super T> funnel, Strategy strategy, long capacity, double fpp) {
+      CuckooTable table, Funnel<? super T> funnel, Strategy strategy, long capacity, double fpp) {
     this.capacity = capacity;
     this.fpp = fpp;
     this.table = checkNotNull(table);
@@ -319,7 +304,7 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
   public static <T> CuckooFilter<T> create(
       Funnel<? super T> funnel, long capacity, double fpp) {
     return create(funnel, capacity, fpp,
-        CuckooFilterStrategies.MURMUR128_BEALDUPRAS_32);
+        CuckooFilterStrategies.MURMUR128_BEALDUPRAS_32.strategy());
   }
 
   @VisibleForTesting
@@ -337,7 +322,7 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
     int numBitsPerEntry = optimalBitsPerEntry(fpp, numEntriesPerBucket);
 
     try {
-      return new CuckooFilter<T>(new CuckooFilterStrategies.CuckooTable(numBuckets,
+      return new CuckooFilter<T>(new CuckooTable(numBuckets,
           numEntriesPerBucket, numBitsPerEntry), funnel, strategy, capacity, fpp);
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Could not create CuckooFilter of " + numBuckets +
@@ -512,10 +497,10 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
     final double fpp;
 
     SerialForm(CuckooFilter<T> filter) {
-      this.data = filter.table.data;
-      this.numBuckets = filter.table.numBuckets;
-      this.numEntriesPerBucket = filter.table.numEntriesPerBucket;
-      this.numBitsPerEntry = filter.table.numBitsPerEntry;
+      this.data = filter.table.data();
+      this.numBuckets = filter.table.numBuckets();
+      this.numEntriesPerBucket = filter.table.numEntriesPerBucket();
+      this.numBitsPerEntry = filter.table.numBitsPerEntry();
       this.size = filter.table.size();
       this.checksum = filter.table.checksum();
       this.funnel = filter.funnel;
@@ -526,8 +511,7 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
 
     Object readResolve() {
       return new CuckooFilter<T>(
-          new CuckooFilterStrategies
-              .CuckooTable(data, size, checksum, numBuckets, numEntriesPerBucket, numBitsPerEntry),
+          new CuckooTable(data, size, checksum, numBuckets, numEntriesPerBucket, numBitsPerEntry),
           funnel, strategy, capacity, fpp);
     }
 
@@ -560,12 +544,12 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
     dout.writeDouble(fpp);
     dout.writeLong(table.size());
     dout.writeLong(table.checksum());
-    dout.writeLong(table.numBuckets);
-    dout.writeInt(table.numEntriesPerBucket);
-    dout.writeInt(table.numBitsPerEntry);
-    dout.writeInt(table.data.length);
+    dout.writeLong(table.numBuckets());
+    dout.writeInt(table.numEntriesPerBucket());
+    dout.writeInt(table.numBitsPerEntry());
+    dout.writeInt(table.data().length);
 
-    for (long value : table.data) {
+    for (long value : table.data()) {
       dout.writeLong(value);
     }
   }
@@ -608,14 +592,13 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
       numBitsPerEntry = din.readInt();
       dataLength = din.readInt();
 
-      Strategy strategy = CuckooFilterStrategies.values()[strategyOrdinal];
+      Strategy strategy = CuckooFilterStrategies.values()[strategyOrdinal].strategy();
       long[] data = new long[dataLength];
       for (int i = 0; i < data.length; i++) {
         data[i] = din.readLong();
       }
       return new CuckooFilter<T>(
-          new CuckooFilterStrategies
-              .CuckooTable(data, size, checksum, numBuckets, numEntriesPerBucket, numBitsPerEntry),
+          new CuckooTable(data, size, checksum, numBuckets, numEntriesPerBucket, numBitsPerEntry),
           funnel, strategy, capacity, fpp);
     } catch (RuntimeException e) {
       IOException ioException = new IOException(
@@ -643,7 +626,7 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    */
   @VisibleForTesting
   static int calculateDataLength(long capacity, double fpp) {
-    return CuckooFilterStrategies.CuckooTable.calculateDataLength(
+    return CuckooTable.calculateDataLength(
         optimalNumberOfBuckets(capacity, optimalEntriesPerBucket(fpp)),
         optimalEntriesPerBucket(fpp),
         optimalBitsPerEntry(fpp, optimalEntriesPerBucket(fpp)));

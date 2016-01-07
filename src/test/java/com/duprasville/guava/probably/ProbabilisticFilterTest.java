@@ -16,6 +16,8 @@ package com.duprasville.guava.probably;
 
 import com.google.common.hash.Funnels;
 
+import com.duprasville.guava.probably.cuckoo.CuckooFilterStrategies;
+
 import junit.framework.TestCase;
 
 import java.util.Random;
@@ -47,7 +49,7 @@ public class ProbabilisticFilterTest extends TestCase {
       for (int capacity = 100; capacity <= 10000; capacity *= 10) {
         basicTests(CuckooFilter.create(
             Funnels.stringFunnel(UTF_8), capacity, fpp,
-            CuckooFilterStrategies.MURMUR128_BEALDUPRAS_32), capacity, fpp);
+            CuckooFilterStrategies.MURMUR128_BEALDUPRAS_32.strategy()), capacity, fpp);
       }
     }
   }

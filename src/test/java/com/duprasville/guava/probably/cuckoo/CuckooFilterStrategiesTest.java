@@ -13,19 +13,22 @@
  */
 
 
-package com.duprasville.guava.probably;
+package com.duprasville.guava.probably.cuckoo;
 
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
+
+import com.duprasville.guava.probably.CuckooFilter;
 
 import junit.framework.TestCase;
 
 import java.util.Random;
 
-import static com.duprasville.guava.probably.CuckooFilterStrategies.CuckooTable.readBits;
-import static com.duprasville.guava.probably.CuckooFilterStrategies.CuckooTable.writeBits;
-import static com.duprasville.guava.probably.CuckooFilterStrategies.MURMUR128_BEALDUPRAS_32;
-import static com.duprasville.guava.probably.CuckooFilterStrategies.values;
+import static com.duprasville.guava.probably.cuckoo.CuckooFilterStrategies.MURMUR128_BEALDUPRAS_32;
+import static com.duprasville.guava.probably.cuckoo.CuckooFilterStrategies.RESERVED;
+import static com.duprasville.guava.probably.cuckoo.CuckooFilterStrategies.values;
+import static com.duprasville.guava.probably.cuckoo.CuckooTable.readBits;
+import static com.duprasville.guava.probably.cuckoo.CuckooTable.writeBits;
 import static com.google.common.truth.Truth.assertThat;
 
 /**
@@ -88,14 +91,14 @@ public class CuckooFilterStrategiesTest extends TestCase {
   }
 
   public void testFingerprintBoundaries() throws Exception {
-    assertThat(MURMUR128_BEALDUPRAS_32.fingerprint(0x80000000, 1)).isEqualTo(0x01);
-    assertThat(MURMUR128_BEALDUPRAS_32.fingerprint(0xC0000000, 2)).isEqualTo(0x03);
-    assertThat(MURMUR128_BEALDUPRAS_32.fingerprint(0xE0000000, 3)).isEqualTo(0x04);
-    assertThat(MURMUR128_BEALDUPRAS_32.fingerprint(0xE0000000, 8)).isEqualTo(0xE0);
-    assertThat(MURMUR128_BEALDUPRAS_32.fingerprint(0xE0000000, 16)).isEqualTo(0xE000);
-    assertThat(MURMUR128_BEALDUPRAS_32.fingerprint(0x80000000, Integer.SIZE)).isEqualTo(0x80000000);
+    assertThat(CuckooMurmurBealDupras32Strategy.fingerprint(0x80000000, 1)).isEqualTo(0x01);
+    assertThat(CuckooMurmurBealDupras32Strategy.fingerprint(0xC0000000, 2)).isEqualTo(0x03);
+    assertThat(CuckooMurmurBealDupras32Strategy.fingerprint(0xE0000000, 3)).isEqualTo(0x04);
+    assertThat(CuckooMurmurBealDupras32Strategy.fingerprint(0xE0000000, 8)).isEqualTo(0xE0);
+    assertThat(CuckooMurmurBealDupras32Strategy.fingerprint(0xE0000000, 16)).isEqualTo(0xE000);
+    assertThat(CuckooMurmurBealDupras32Strategy.fingerprint(0x80000000, Integer.SIZE)).isEqualTo(0x80000000);
     for (int f = 1; f < Integer.SIZE; f++) {
-      assertThat(MURMUR128_BEALDUPRAS_32.fingerprint(0x00, f)).isNotEqualTo(0x00);
+      assertThat(CuckooMurmurBealDupras32Strategy.fingerprint(0x00, f)).isNotEqualTo(0x00);
     }
   }
 
@@ -106,7 +109,7 @@ public class CuckooFilterStrategiesTest extends TestCase {
     final long m = 0x1DEAL;
 
     for (int hash = min; hash != next(hash, incr, max); hash = next(hash, incr, max)) {
-      final long index = MURMUR128_BEALDUPRAS_32.index(hash, m);
+      final long index = new CuckooMurmurBealDupras32Strategy(-1).index(hash, m);
       assertThat(index).isLessThan(m);
       assertThat(index).isGreaterThan(-1L);
     }
@@ -121,8 +124,8 @@ public class CuckooFilterStrategiesTest extends TestCase {
     for (long index = 0; index != next(index, incr, max); index = next(index, incr, max)) {
       random.nextBytes(fingerprint);
       int f = (random.nextInt(126) + 1) * (random.nextBoolean() ? 1 : -1);
-      final long altIndex = MURMUR128_BEALDUPRAS_32.altIndex(index, f, max);
-      final long altAltIndex = MURMUR128_BEALDUPRAS_32.altIndex(altIndex, f, max);
+      final long altIndex = new CuckooMurmurBealDupras32Strategy(-1).altIndex(index, f, max);
+      final long altAltIndex = new CuckooMurmurBealDupras32Strategy(-1).altIndex(altIndex, f, max);
       assertEquals("index should equal altIndex(altIndex(index)):" + f, index, altAltIndex);
     }
   }
@@ -132,8 +135,9 @@ public class CuckooFilterStrategiesTest extends TestCase {
    * appending a new constant is allowed.
    */
   public void testCuckooFilterStrategies() {
-    assertThat(values()).hasLength(1);
-    assertEquals(MURMUR128_BEALDUPRAS_32, values()[0]);
+    assertThat(values()).hasLength(2);
+    assertEquals(RESERVED, values()[0]);
+    assertEquals(MURMUR128_BEALDUPRAS_32, values()[1]);
   }
 
   public void testWriteBits() throws Exception {
