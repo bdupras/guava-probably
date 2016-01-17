@@ -37,8 +37,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * may help you understand how they work.
  *
  * <p>The false positive probability ({@code FPP}) of a bloom filter is defined as the probability
- * that {@link #contains(Object)} will erroneously return {@code true} for an object that has
- * not actually been put in the {@link BloomFilter}. </blockquote>
+ * that {@link #contains(Object)} will erroneously return {@code true} for an object that has not
+ * actually been put in the {@link BloomFilter}. </blockquote>
  *
  * @param <T> the type of instances that the {@link BloomFilter} accepts.
  * @author Brian Dupras
@@ -47,7 +47,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class BloomFilter<T> extends ForwardingBloomFilter<T>
     implements ProbabilisticFilter<T>, Serializable {
-  private final com.google.common.hash.BloomFilter<T> delegate;
+  private com.google.common.hash.BloomFilter<T> delegate;
+  private final Funnel<T> funnel;
   private final long capacity;
   private final double fpp;
   private long size;
@@ -57,31 +58,31 @@ public final class BloomFilter<T> extends ForwardingBloomFilter<T>
     return delegate;
   }
 
-  private BloomFilter(com.google.common.hash.BloomFilter<T> delegate, long capacity, double fpp, long size) {
+  private BloomFilter(com.google.common.hash.BloomFilter<T> delegate, Funnel<T> funnel, long capacity, double fpp, long size) {
     super();
     this.delegate = delegate;
+    this.funnel = funnel;
     this.capacity = capacity;
     this.fpp = fpp;
     this.size = size;
   }
 
   /**
-   * Creates a {@link BloomFilter} with the expected number of insertions and
-   * expected false positive probability.
+   * Creates a {@link BloomFilter} with the expected number of insertions and expected false
+   * positive probability.
    *
    * <p>Note that overflowing a {@link BloomFilter} with significantly more elements than specified,
    * will result in its saturation, and a sharp deterioration of its false positive probability.
    *
-   * <p>The constructed {@link BloomFilter} will be serializable if the provided {@link
-   * Funnel} is.
+   * <p>The constructed {@link BloomFilter} will be serializable if the provided {@link Funnel} is.
    *
    * <p>It is recommended that the funnel be implemented as a Java enum. This has the benefit of
-   * ensuring proper serialization and deserialization, which is important since {@link #equals(Object)}
-   * also relies on object identity of funnels.
+   * ensuring proper serialization and deserialization, which is important since {@link
+   * #equals(Object)} also relies on object identity of funnels.
    *
    * @param funnel   the funnel of T's that the constructed {@link BloomFilter} will use
-   * @param capacity the number of expected insertions to the constructed {@link BloomFilter};
-   *                 must be positive
+   * @param capacity the number of expected insertions to the constructed {@link BloomFilter}; must
+   *                 be positive
    * @param fpp      the desired false positive probability (must be positive and less than 1.0)
    * @return a {@link BloomFilter}
    * @see <a target="guavadoc" href="http://google.github.io/guava/releases/snapshot/api/docs/com/google/common/hash/BloomFilter.html#create(com.google.common.hash.Funnel,
@@ -92,7 +93,7 @@ public final class BloomFilter<T> extends ForwardingBloomFilter<T>
   public static <T> BloomFilter<T> create(Funnel<T> funnel, int capacity, double fpp) {
     return new BloomFilter<T>(
         com.google.common.hash.BloomFilter.create(funnel, capacity, fpp),
-        capacity, fpp, 0L);
+        funnel, capacity, fpp, 0L);
   }
 
   /**
@@ -102,16 +103,16 @@ public final class BloomFilter<T> extends ForwardingBloomFilter<T>
    * <p>Note that overflowing a {@link BloomFilter} with significantly more objects than specified,
    * will result in its saturation, and a sharp deterioration of its false positive probability.
    *
-   * <p>The constructed {@link BloomFilter} will be serializable if the provided {@code
-   * Funnel<T>} is.
+   * <p>The constructed {@link BloomFilter} will be serializable if the provided {@code Funnel<T>}
+   * is.
    *
    * <p>It is recommended that the funnel be implemented as a Java enum. This has the benefit of
    * ensuring proper serialization and deserialization, which is important since {@link #equals}
    * also relies on object identity of funnels.
    *
    * @param funnel   the funnel of T's that the constructed {@link BloomFilter} will use
-   * @param capacity the number of expected insertions to the constructed {@link BloomFilter};
-   *                 must be positive
+   * @param capacity the number of expected insertions to the constructed {@link BloomFilter}; must
+   *                 be positive
    * @return a {@link BloomFilter}
    * @see <a target="guavadoc" href="http://google.github.io/guava/releases/snapshot/api/docs/com/google/common/hash/BloomFilter.html#create(com.google.common.hash.Funnel,
    * int)">com.google.common.hash.BloomFilter#create(com.google.common.hash.Funnel, int)</a> </a>
@@ -120,7 +121,7 @@ public final class BloomFilter<T> extends ForwardingBloomFilter<T>
   public static <T> BloomFilter<T> create(Funnel<T> funnel, int capacity) {
     return new BloomFilter<T>(
         com.google.common.hash.BloomFilter.create(funnel, capacity, 0.03D),
-        capacity, 0.03D, 0L);
+        funnel, capacity, 0.03D, 0L);
   }
 
   /**
@@ -132,9 +133,9 @@ public final class BloomFilter<T> extends ForwardingBloomFilter<T>
    * {@code false} otherwise. In either case, subsequent calls to {@code
    * com.google.common.hash.BloomFilter#mightContain(t)} will <i>always</i> return {@code true}.
    *
-   * The return contract of {@link ProbabilisticFilter#add(Object)} differs, indicating success or failure
-   * of adding an item to the filter. After {@link #add(Object)} returns {@code false}, subsequent calls
-   * {@link #contains(Object)} <i>may</i> return {@code false}.
+   * The return contract of {@link ProbabilisticFilter#add(Object)} differs, indicating success or
+   * failure of adding an item to the filter. After {@link #add(Object)} returns {@code false},
+   * subsequent calls {@link #contains(Object)} <i>may</i> return {@code false}.
    *
    * @return always {@code true} as {@code com.google.common.hash.BloomFilter} cannot fail to add an
    * object.
@@ -173,8 +174,28 @@ public final class BloomFilter<T> extends ForwardingBloomFilter<T>
     return true;
   }
 
+  /**
+   * Returns {@code true} if all elements of the given collection <i>might</i> have been added to
+   * this Bloom filter, {@code false} if this is <i>definitely</i> not the case.
+   */
+  public boolean containsAll(Collection<? extends T> c) {
+    for (T o : c) {
+      if (!contains(o)) return false;
+    }
+    return true;
+  }
+
+  public boolean containsAll(ProbabilisticFilter<T> f) {
+    checkNotNull(f);
+    throw new UnsupportedOperationException();
+  }
+
   public boolean isEmpty() {
     return 0 == this.size();
+  }
+
+  public Funnel<T> funnel() {
+    return funnel;
   }
 
   public long size() {
@@ -194,7 +215,17 @@ public final class BloomFilter<T> extends ForwardingBloomFilter<T>
    * equals(f) == true} but shares no mutable state.
    */
   public static <T> BloomFilter<T> copyOf(BloomFilter<T> f) {
-    return new BloomFilter<T>(f.delegate().copy(), f.capacity(), f.fpp(), f.size());
+    return new BloomFilter<T>(f.delegate().copy(), f.funnel(), f.capacity(), f.fpp(), f.size());
+  }
+
+  public void clear() {
+    this.delegate = com.google.common.hash.BloomFilter.create(funnel, (int) capacity, fpp);
+    this.size = 0L;
+  }
+
+  public boolean remove(T t) {
+    checkNotNull(t);
+    throw new UnsupportedOperationException();
   }
 
 }

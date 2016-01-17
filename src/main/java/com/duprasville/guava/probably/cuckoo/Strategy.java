@@ -25,4 +25,5 @@ public interface Strategy extends Serializable {
   <T> boolean contains(T object, Funnel<? super T> funnel, CuckooTable table);
   boolean addAll(CuckooTable thiz, CuckooTable that);
   boolean equivalent(CuckooTable thiz, CuckooTable that);
+  boolean containsAll(CuckooTable thiz, CuckooTable that);
 }

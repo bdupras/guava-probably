@@ -73,6 +73,35 @@ public interface ProbabilisticFilter<E> {
   boolean addAll(Collection<? extends E> c);
 
   /**
+   * Removes all of the elements from this filter (optional operation). The filter will be empty
+   * after this call returns.
+   *
+   * @throws UnsupportedOperationException - if the clear method is not supported by this filter
+   */
+  void clear();
+
+  /**
+   * Removes the specified element from this filter. The element must been previously added to the
+   * filter. Removing an element that hasn't been added to the filter may put the filter in an
+   * inconsistent state causing it to return false negative responses from {@link
+   * #contains(Object)}.
+   *
+   * If {@code false} is returned, this is <i>definitely</i> an indication that either this
+   * invocation or a previous invocation has been made without the element having been previously
+   * added to the filter. If the implementation treats this condition as an error, then this filter
+   * can no longer be relied upon to return correct {@code false} responses from {@link
+   * #contains(Object)} unless {@link #isEmpty()} is also {@code true}.
+   *
+   * @param e object to be removed from this filter, if present
+   * @return {@code true} if this filter probably contained the specified element
+   * @throws NullPointerException          if the specified element is null and this filter does not
+   *                                       permit null elements.
+   * @throws UnsupportedOperationException if the {@link #remove(Object)} operation is not supported
+   *                                       by this filter
+   */
+  boolean remove(E e);
+
+  /**
    * Returns {@code true} if this filter <i>might</i> contain the specified element.
    *
    * @param o element whose presence in this filter is to be tested
@@ -80,6 +109,34 @@ public interface ProbabilisticFilter<E> {
    * if this is <i>definitely</i> not the case.
    */
   boolean contains(E o);
+
+  /**
+   * Returns {@code true} if {@link #contains(Object)}{@code == true} for all of the elements of the
+   * specified collection.
+   *
+   * @param c collection to be checked for containment in this filter
+   * @return {@code true} if {@link #contains(Object)}{@code == true} for all of the elements of the
+   * specified collection.
+   * @throws ClassCastException   - if the types of one or more elements in the specified collection
+   *                              are incompatible with this filter (optional)
+   * @throws NullPointerException - if the specified collection contains one or more null elements
+   *                              and this filter does not permit null elements (optional), or if
+   *                              the specified collection is null
+   */
+  boolean containsAll(Collection<? extends E> c);
+
+  /**
+   * Returns {@code true} if this filter <i>might</i> contain all elements contained in the
+   * specified filter. (Optional operation.)
+   *
+   * @param f filter to be checked for probable containment in this filter
+   * @return {@code true} if this filter <i>might</i> contain all elements contained in the
+   * specified filter, {@code false} if this is <i>definitely</i> not the case.
+   * @throws NullPointerException          - if the specified filter is null
+   * @throws UnsupportedOperationException - if the {@link #containsAll(ProbabilisticFilter)}
+   *                                       operation is not supported by this set
+   */
+  boolean containsAll(ProbabilisticFilter<E> f);
 
   /**
    * Returns true if this filter contains no elements.

@@ -87,23 +87,27 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    */
   public boolean addAll(ProbabilisticFilter<T> f) {
     checkNotNull(f);
-    checkArgument(this != f, "Cannot combine a " + this.getClass().getSimpleName() + " with itself.");
-    checkArgument(f instanceof CuckooFilter, "Cannot combine a " +
-        this.getClass().getSimpleName() + " with a " + f.getClass().getSimpleName());
-    checkArgument(this.isCompatible(f), "Cannot combine incompatible filters. " +
-        this.getClass().getSimpleName() + " instances must have equivalent funnels; the same " +
-        "strategy; and the same number of buckets, entries per bucket, and bits per entry.");
-
+    checkArgument(this != f, "Cannot combine a " + this.getClass().getSimpleName() +
+        " with itself.");
+    checkCompatibility(f, "combine");
     return this.strategy.addAll(this.table, ((CuckooFilter) f).table);
   }
 
+  private void checkCompatibility(ProbabilisticFilter<T> f, String verb) {
+    checkArgument(f instanceof CuckooFilter, "Cannot" + verb + " a " +
+        this.getClass().getSimpleName() + " with a " + f.getClass().getSimpleName());
+    checkArgument(this.isCompatible(f), "Cannot" + verb + " incompatible filters. " +
+        this.getClass().getSimpleName() + " instances must have equivalent funnels; the same " +
+        "strategy; and the same number of buckets, entries per bucket, and bits per entry.");
+  }
+
   /**
-   * Adds all of the elements in the specified collection to the filter. Some elements of {@code c} may have been
-   * added to the filter even when {@code false} is returned. In this case, the caller may {@link
-   * #remove(Object)} the additions by comparing the filter {@link #size()} before and after the
-   * invocation, knowing that additions from {@code c} occurred in {@code c}'s iteration order. The
-   * behavior of this operation is undefined if the specified collection is modified while the
-   * operation is in progress.
+   * Adds all of the elements in the specified collection to the filter. Some elements of {@code c}
+   * may have been added to the filter even when {@code false} is returned. In this case, the caller
+   * may {@link #remove(Object)} the additions by comparing the filter {@link #size()} before and
+   * after the invocation, knowing that additions from {@code c} occurred in {@code c}'s iteration
+   * order. The behavior of this operation is undefined if the specified collection is modified
+   * while the operation is in progress.
    *
    * @return {@code true} if all elements of the collection were successfully added
    */
@@ -114,6 +118,10 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
       }
     }
     return true;
+  }
+
+  public void clear() {
+    table.clear();
   }
 
   private final CuckooTable table;
@@ -153,13 +161,33 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
   }
 
   /**
+   * Returns {@code true} if all elements of the given collection <i>might</i> have been added to
+   * this Cuckoo filter, {@code false} if this is <i>definitely</i> not the case.
+   */
+  public boolean containsAll(Collection<? extends T> c) {
+    for (T o : c) {
+      if (!contains(o)) return false;
+    }
+    return true;
+  }
+
+  public boolean containsAll(ProbabilisticFilter<T> f) {
+    checkNotNull(f);
+    if (this == f) {
+      return true;
+    }
+    checkCompatibility(f, "compare");
+    return this.strategy.containsAll(this.table, ((CuckooFilter) f).table);
+  }
+
+  /**
    * Adds an object into this {@link CuckooFilter}. Ensures that subsequent invocations of {@link
    * #contains(Object)} with the same object will always return {@code true}.
    *
-   * @return true if {@code e} has been successfully added to the filter. false if {@code
-   * e} was not added to the filter, as would be the case when the filter gets saturated. This
-   * may occur even if actualInsertions < capacity. e.g. If {@code e} has already been added 2*b
-   * times to the filter, a subsequent attempt will fail.
+   * @return true if {@code e} has been successfully added to the filter. false if {@code e} was not
+   * added to the filter, as would be the case when the filter gets saturated. This may occur even
+   * if actualInsertions < capacity. e.g. If {@code e} has already been added 2*b times to the
+   * filter, a subsequent attempt will fail.
    */
   @CheckReturnValue
   public boolean add(T e) {
@@ -171,10 +199,10 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    * filter. Removing an {@code e} that hasn't been added to the filter may put the filter in an
    * inconsistent state causing it to return false negative responses from {@link
    * #contains(Object)}. <p/> If {@code false} is returned, this is <i>definitely</i> an indication
-   * that either this invocation or a previous invocation hahas been made
-   * without a matching invocation of {@link #add(Object)}. This condition is always an error and
-   * the this {@link CuckooFilter} can no longer be relied upon to return correct {@code false}
-   * responses from {@link #contains(Object)}.
+   * that either this invocation or a previous invocation has been made without a matching
+   * invocation of {@link #add(Object)}. This condition is always an error and this {@link
+   * CuckooFilter} can no longer be relied upon to return correct {@code false} responses from
+   * {@link #contains(Object)}.
    *
    * @return true if {@code e} was successfully removed from the filter.
    */
@@ -446,8 +474,8 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
   }
 
   /**
-   * Returns the optimal number of bits per entry ({@code f}) given the false positive
-   * probability ({@code e}) and the number of entries per bucket ({@code b}).
+   * Returns the optimal number of bits per entry ({@code f}) given the false positive probability
+   * ({@code e}) and the number of entries per bucket ({@code b}).
    *
    * CuckooFilter § 5.1 Eq. (6), "f ≥ log2(2b/e) = [log2(1/e) + log2(2b)]"
    *
@@ -463,8 +491,8 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
   }
 
   /**
-   * Returns the minimal required number of buckets given the expected insertions {@code n}, and
-   * the number of entries per bucket ({@code b}).
+   * Returns the minimal required number of buckets given the expected insertions {@code n}, and the
+   * number of entries per bucket ({@code b}).
    *
    * @param n the number of expected insertions
    * @param b number of entries per bucket
@@ -521,8 +549,8 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
   /**
    * Writes this {@link CuckooFilter} to an output stream, with a custom format (not Java
    * serialization). This has been measured to save at least 400 bytes compared to regular
-   * serialization. <p/> <p>Use {@link #readFrom(InputStream, Funnel)} to reconstruct the
-   * written CuckooFilter.
+   * serialization. <p/> <p>Use {@link #readFrom(InputStream, Funnel)} to reconstruct the written
+   * CuckooFilter.
    */
   public void writeTo(OutputStream out) throws IOException {
     /*
@@ -556,8 +584,8 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
 
   /**
    * Reads a byte stream, which was written by {@link #writeTo(OutputStream)}, into a {@link
-   * CuckooFilter}. <p/> The {@code Funnel} to be used is not encoded in the stream, so it must
-   * be provided here. <b>Warning:</b> the funnel provided <b>must</b> behave identically to the one
+   * CuckooFilter}. <p/> The {@code Funnel} to be used is not encoded in the stream, so it must be
+   * provided here. <b>Warning:</b> the funnel provided <b>must</b> behave identically to the one
    * used to populate the original Cuckoo filter!
    *
    * @throws IOException if the InputStream throws an {@code IOException}, or if its data does not
@@ -618,11 +646,11 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
   }
 
   /**
-   * Returns the number of longs required by a CuckooTable for storage given the dimensions
-   * chosen by the CuckooFilter to support {@code capacity) @ {@code fpp}.
+   * Returns the number of longs required by a CuckooTable for storage given the dimensions chosen
+   * by the CuckooFilter to support {@code capacity) @ {@code fpp}.
    *
-   * CuckooTable current impl uses a single long[] for data storage, so the calculated value must
-   * be <= Integer.MAX_VALUE at this time.
+   * CuckooTable current impl uses a single long[] for data storage, so the calculated value must be
+   * <= Integer.MAX_VALUE at this time.
    */
   @VisibleForTesting
   static int calculateDataLength(long capacity, double fpp) {
