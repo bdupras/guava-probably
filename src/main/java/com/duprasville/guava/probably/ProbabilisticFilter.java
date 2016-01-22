@@ -203,11 +203,11 @@ public interface ProbabilisticFilter<E> {
   boolean isCompatible(ProbabilisticFilter<E> f);
 
   /**
-   * Returns the number of elements this filter can represent at its desired @{code FPP}. This may
+   * Returns the number of elements this filter can represent at its desired {@code FPP}. This may
    * not be a hard limit of the filter implementation. It is permissible for a filter to accept more
    * elements than its expected capacity, though its {@code FPP} may suffer.
    *
-   * @return the number of elements this filter can represent at its desired @{code FPP}.
+   * @return the number of elements this filter can represent at its desired {@code FPP}.
    * @see #fpp()
    * @see #currentFpp()
    */
