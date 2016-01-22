@@ -120,7 +120,7 @@ public class CuckooFilterTest extends TestCase {
     }
     assertEquals(expectedNumFpp, actualNumFpp);
     // The normal order of (expected, actual) is reversed here on purpose.
-    assertEquals((double) expectedNumFpp / numInsertions, cf.currentFpp(), 0.00037);
+    assertEquals((double) expectedNumFpp / numInsertions, cf.currentFpp(), 0.0004);
   }
 
   /**

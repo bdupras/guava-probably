@@ -195,8 +195,8 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
   }
 
   /**
-   * Removes {@code e} from this {@link CuckooFilter}. {@code e} must been previously added to the
-   * filter. Removing an {@code e} that hasn't been added to the filter may put the filter in an
+   * Removes {@code e} from this {@link CuckooFilter}. {@code e} must have been previously added to
+   * the filter. Removing an {@code e} that hasn't been added to the filter may put the filter in an
    * inconsistent state causing it to return false negative responses from {@link
    * #contains(Object)}. <p/> If {@code false} is returned, this is <i>definitely</i> an indication
    * that either this invocation or a previous invocation has been made without a matching
@@ -211,6 +211,37 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
     return strategy.remove(e, funnel, table);
   }
 
+  /**
+   * Removes all elements of {@code c} from this {@link CuckooFilter}. Each element of {@code c}
+   * must represented in the filter before invocation. Removing an element that hasn't been added to
+   * the filter may put the filter in an inconsistent state causing it to return false negative
+   * responses from {@link #contains(Object)}. <p/> If {@code false} is returned, this is
+   * <i>definitely</i> an indication that {@code c} contained at least one element that was not
+   * represented in the filter. This condition is always an error and this {@link CuckooFilter} can
+   * no longer be relied upon to return correct {@code false} responses from {@link
+   * #contains(Object)}.
+   *
+   * @return true if {@code e} was successfully removed from the filter.
+   */
+  @CheckReturnValue
+  public boolean removeAll(Collection<? extends T> c) {
+    for (T e : c) {
+      if (!remove(e)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public boolean removeAll(ProbabilisticFilter<T> f) {
+    checkNotNull(f);
+    if (this == f) {
+      clear();
+      return true;
+    }
+    checkCompatibility(f, "remove");
+    return this.strategy.removeAll(this.table, ((CuckooFilter) f).table);
+  }
 
   /**
    * Returns the number of inserted items currently represented in the filter.
@@ -248,7 +279,7 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    * degrading its {@code FPP}.
    */
   public double currentFpp() {
-    return table.expectedFpp();
+    return table.currentFpp();
   }
 
   /**

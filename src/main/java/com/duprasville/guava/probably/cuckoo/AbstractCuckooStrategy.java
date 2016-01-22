@@ -116,6 +116,30 @@ abstract class AbstractCuckooStrategy implements Strategy {
     return true;
   }
 
+  public boolean removeAll(CuckooTable thiz, CuckooTable that) {
+    if (!thiz.isCompatible(that)) {
+      return false;
+    }
+
+    for (long index = 0; index < that.numBuckets; index++) {
+      for (int entry = 0; entry < that.numEntriesPerBucket; entry++) {
+        int fingerprint = that.readEntry(index, entry);
+        if (CuckooTable.EMPTY_ENTRY == fingerprint) {
+          continue;
+        }
+
+        int thizCount = thiz.countEntry(fingerprint, index) +
+            thiz.countEntry(fingerprint, altIndex(index, fingerprint, thiz.numBuckets));
+        int thatCount = that.countEntry(fingerprint, index) +
+            that.countEntry(fingerprint, altIndex(index, fingerprint, that.numBuckets));
+        if (thizCount >= thatCount) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof Strategy) {

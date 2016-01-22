@@ -102,6 +102,38 @@ public interface ProbabilisticFilter<E> {
   boolean remove(E e);
 
   /**
+   * Returns {@code true} if {@link #remove(Object)}{@code == true} for all of the elements of the
+   * specified collection.
+   *
+   * @param c collection of elements to be removed form the filter
+   * @return {@code true} if all of the elements of the specified collection were successfully
+   * removed from the filter, {@code false} if any of the elements was not successfully removed.
+   * @throws ClassCastException            if the types of one or more elements in the specified
+   *                                       collection are incompatible with this filter (optional)
+   * @throws NullPointerException          if the specified collection contains one or more null
+   *                                       elements and this filter does not permit null elements
+   *                                       (optional), or if the specified collection is null
+   * @throws UnsupportedOperationException if the {@link #removeAll(Collection)} operation is not
+   *                                       supported by this filter
+   */
+  boolean removeAll(Collection<? extends E> c);
+
+  /**
+   * Subtracts the specified filter from {@code this} filter. The mutations happen to {@code this}
+   * instance. Callers must ensure that the specified filter represents entries that have been
+   * previously added to {@code this} filter.
+   *
+   * @param f The filter to subtract from {@code this} filter. {@code f} is not mutated.
+   * @return {@code true} if the operation was successful, {@code false} otherwise.
+   * @throws IllegalArgumentException      if {@link #isCompatible(ProbabilisticFilter)}{@code ==
+   *                                       false}
+   * @throws NullPointerException          if the specified filter is null
+   * @throws UnsupportedOperationException if the {@link #removeAll(ProbabilisticFilter)} operation
+   *                                       is not supported by this filter
+   */
+  boolean removeAll(ProbabilisticFilter<E> f);
+
+  /**
    * Returns {@code true} if this filter <i>might</i> contain the specified element.
    *
    * @param o element whose presence in this filter is to be tested

@@ -26,4 +26,5 @@ public interface Strategy extends Serializable {
   boolean addAll(CuckooTable thiz, CuckooTable that);
   boolean equivalent(CuckooTable thiz, CuckooTable that);
   boolean containsAll(CuckooTable thiz, CuckooTable that);
+  boolean removeAll(CuckooTable thiz, CuckooTable that);
 }

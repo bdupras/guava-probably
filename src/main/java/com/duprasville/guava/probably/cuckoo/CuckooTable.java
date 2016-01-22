@@ -23,6 +23,7 @@ import java.math.RoundingMode;
 import java.util.Arrays;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.lang.Math.pow;
 
 public class CuckooTable {
   static final int EMPTY_ENTRY = 0x00;
@@ -249,7 +250,17 @@ public class CuckooTable {
   }
 
   public double expectedFpp() {
-    return (2.0D * size / numBuckets) / Math.pow(2, numBitsPerEntry);
+    return (2.0D * size / numBuckets) / pow(2, numBitsPerEntry);
+  }
+
+  public double currentFpp() {
+    return 1.0D - pow(
+        ( pow(2, numBitsPerEntry) - 2 )
+        /
+        ( pow(2, numBitsPerEntry) - 1 )
+        ,
+        2 * numEntriesPerBucket * load()
+    );
   }
 
   public double averageBitsPerEntry() {

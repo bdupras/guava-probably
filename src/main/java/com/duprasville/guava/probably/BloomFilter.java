@@ -228,4 +228,14 @@ public final class BloomFilter<T> extends ForwardingBloomFilter<T>
     throw new UnsupportedOperationException();
   }
 
+  public boolean removeAll(Collection<? extends T> c) {
+    checkNotNull(c);
+    throw new UnsupportedOperationException();
+  }
+
+  public boolean removeAll(ProbabilisticFilter<T> f) {
+    checkNotNull(f);
+    throw new UnsupportedOperationException();
+  }
+
 }
