@@ -214,11 +214,11 @@ public interface ProbabilisticFilter<E> {
   long capacity();
 
   /**
-   * Returns the intended {@FPP} limit of this filter. This may not be a hard limit of the filter
+   * Returns the intended {@code FPP} limit of this filter. This may not be a hard limit of the filter
    * implementation. It is permissible for a filter's {@code FPP} to degrade (e.g. via saturation)
    * beyond its intended limit.
    *
-   * @return the intended {@FPP} limit of this filter.
+   * @return the intended {@code FPP} limit of this filter.
    */
   double fpp();
 }
