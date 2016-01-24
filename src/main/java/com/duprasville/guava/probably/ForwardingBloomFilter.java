@@ -36,8 +36,8 @@ abstract class ForwardingBloomFilter<T> extends ForwardingObject {
    *
    * @see <a target="guavadoc" href="http://google.github.io/guava/releases/snapshot/api/docs/com/google/common/hash/BloomFilter.html#mightContain(T)">com.google.common.hash.BloomFilter#mightContain(T)</a>
    */
-  public boolean contains(T o) {
-    return delegate().mightContain(o);
+  public boolean contains(T e) {
+    return delegate().mightContain(e);
   }
 
   /**

@@ -156,8 +156,8 @@ public final class CuckooFilter<T> implements ProbabilisticFilter<T>, Serializab
    * false} if this is <i>definitely</i> not the case.
    */
   @CheckReturnValue
-  public boolean contains(T o) {
-    return strategy.contains(o, funnel, table);
+  public boolean contains(T e) {
+    return strategy.contains(e, funnel, table);
   }
 
   /**
