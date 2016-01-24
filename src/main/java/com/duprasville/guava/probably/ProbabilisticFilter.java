@@ -20,11 +20,11 @@ import javax.annotation.CheckReturnValue;
 
 /**
  * A probabilistic filter offers an approximate containment test with one-sided error: if it claims
- * that an element is contained in it, this might be in error, but if it claims that an element is
- * <i>not</i> contained in it, then this is definitely true. <p/> <p>The false positive probability
- * ({@code FPP}) of a probabilistic filter is defined as the probability that {@link
- * #contains(Object)} will erroneously return {@code true} for an element that has not actually been
- * added to the {@code ProbabilisticFilter}. <p/>
+ * that an element is contained in it, this <i>might</i> be in error, but if it claims that an
+ * element is <i>not</i> contained in it, then this is <i>definitely</i> true. <p/> <p>The false
+ * positive probability ({@code FPP}) of a probabilistic filter is defined as the probability that
+ * {@link #contains(Object)} will erroneously return {@code true} for an element that is not
+ * actually contained in the filter. <p/>
  *
  * @param <E> the type of elements that this filter accepts
  * @author Brian Dupras
@@ -104,10 +104,10 @@ public interface ProbabilisticFilter<E> {
   void clear();
 
   /**
-   * Removes the specified element from this filter (optional operation). The element must have been
-   * previously contained in the filter. Removing an element that isn't contained the filter may put
-   * the filter in an inconsistent state causing it to return false negative responses from {@link
-   * #contains(Object)}.
+   * Removes the specified element from this filter (optional operation). The element must be
+   * contained in the filter prior to invocation. Removing an element that isn't contained in the
+   * filter may put the filter in an inconsistent state causing it to return false negative
+   * responses from {@link #contains(Object)}.
    *
    * If {@code false} is returned, this is <i>definitely</i> an indication that the specified
    * element wasn't contained in the filter prior to invocation. If the implementation treats this
@@ -126,11 +126,21 @@ public interface ProbabilisticFilter<E> {
    *                                       by this filter
    * @see #contains(Object)
    */
+  @CheckReturnValue
   boolean remove(E e);
 
   /**
    * Removes from this filter all of its elements that are contained in the specified collection
-   * (optional operation).
+   * (optional operation). All element contained in the specified collection must be contained in
+   * the filter prior to invocation. Removing elements that aren't contained in the filter may put
+   * the filter in an inconsistent state causing it to return false negative responses from {@link
+   * #contains(Object)}.
+   *
+   * If {@code false} is returned, this is <i>definitely</i> an indication that the specified
+   * collection contained elements that were not contained in this filter prior to invocation. If
+   * the implementation treats this condition as an error, then this filter can no longer be relied
+   * upon to return correct {@code false} responses from {@link #contains(Object)}, unless {@link
+   * #isEmpty()} is also {@code true}.
    *
    * @param c collection containing elements to be removed from this filter
    * @return {@code true} if all of the elements of the specified collection were successfully
@@ -145,12 +155,19 @@ public interface ProbabilisticFilter<E> {
    * @see #remove(Object)
    * @see #contains(Object)
    */
+  @CheckReturnValue
   boolean removeAll(Collection<? extends E> c);
 
   /**
    * Subtracts the specified filter from {@code this} filter. The mutations happen to {@code this}
-   * instance. Callers must ensure that the specified filter represents entries that have been
-   * previously added to {@code this} filter.
+   * instance. Callers must ensure that the specified filter represents elements that are currently
+   * contained in {@code this} filter.
+   *
+   * If {@code false} is returned, this is <i>definitely</i> an indication that the specified
+   * filter contained elements that were not contained in this filter prior to invocation. If
+   * the implementation treats this condition as an error, then this filter can no longer be relied
+   * upon to return correct {@code false} responses from {@link #contains(Object)}, unless {@link
+   * #isEmpty()} is also {@code true}.
    *
    * @param f filter containing elements to remove from {@code this} filter. {@code f} is not
    *          mutated
@@ -162,6 +179,7 @@ public interface ProbabilisticFilter<E> {
    *                                       false} given {@code f}
    * @see #remove(Object)
    */
+  @CheckReturnValue
   boolean removeAll(ProbabilisticFilter<E> f);
 
   /**
@@ -225,15 +243,6 @@ public interface ProbabilisticFilter<E> {
   long size();
 
   /**
-   * Returns the current false positive probability ({@code FPP}) of this filter.
-   *
-   * @return the probability that {@link #contains(Object)} will erroneously return {@code true}
-   * given an element that has not actually been added to the filter.
-   * @see #fpp()
-   */
-  double currentFpp();
-
-  /**
    * Returns {@code true} if the specified filter is compatible with {@code this} filter. {@code f}
    * is considered compatible if {@code this} filter can use it in combinatoric operations (e.g.
    * {@link #addAll(ProbabilisticFilter)}, {@link #containsAll(ProbabilisticFilter)}, {@link
@@ -258,6 +267,15 @@ public interface ProbabilisticFilter<E> {
    * @see #currentFpp()
    */
   long capacity();
+
+  /**
+   * Returns the current false positive probability ({@code FPP}) of this filter.
+   *
+   * @return the probability that {@link #contains(Object)} will erroneously return {@code true}
+   * given an element that has not actually been added to the filter.
+   * @see #fpp()
+   */
+  double currentFpp();
 
   /**
    * Returns the intended {@code FPP} limit of this filter. This may not be a hard limit of the
