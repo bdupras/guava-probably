@@ -8,7 +8,7 @@ if [ "$TRAVIS_REPO_SLUG" == "bdupras/guava-probably" ] && \
    [ "$TRAVIS_JDK_VERSION" == "oraclejdk7" ] && \
    [ "$TRAVIS_PULL_REQUEST" == "false" ] && \
    [ "$TRAVIS_BRANCH" == "master" ]; then
-  echo "Publishing Javadoc and JDiff..."
+  echo "Publishing Javadoc ..."
 
   cd $HOME
   rm -Rf gh-pages

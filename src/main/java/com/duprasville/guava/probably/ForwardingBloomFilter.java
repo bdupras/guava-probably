@@ -42,7 +42,7 @@ abstract class ForwardingBloomFilter<T> extends ForwardingObject {
 
   /**
    * Puts an object into the underlying {@code com.google.common.hash.BloomFilter}. Ensures that
-   * subsequent invocations of {@link #contains(T)} with the same object will always return {@code
+   * subsequent invocations of {@link #contains(Object)} with the same object will always return {@code
    * true}.
    *
    * @return true if the bloom filter's bits changed as a result of this operation. If the bits

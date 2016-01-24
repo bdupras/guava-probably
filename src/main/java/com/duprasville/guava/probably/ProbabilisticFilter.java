@@ -56,7 +56,7 @@ public interface ProbabilisticFilter<E> {
    * happen to {@code this} instance. Callers must ensure {@code this} filter is appropriately sized
    * to avoid saturating it or running out of space.
    *
-   * @param f The filter to be combined into {@code this} filter. {@code f} is not mutated.
+   * @param f filter to be combined into {@code this} filter. {@code f} is not mutated.
    * @return {@code true} if the operation was successful, {@code false} otherwise.
    * @throws UnsupportedOperationException if the {@link #addAll(ProbabilisticFilter)} operation is
    *                                       not supported by this filter
@@ -163,10 +163,10 @@ public interface ProbabilisticFilter<E> {
    * instance. Callers must ensure that the specified filter represents elements that are currently
    * contained in {@code this} filter.
    *
-   * If {@code false} is returned, this is <i>definitely</i> an indication that the specified
-   * filter contained elements that were not contained in this filter prior to invocation. If
-   * the implementation treats this condition as an error, then this filter can no longer be relied
-   * upon to return correct {@code false} responses from {@link #contains(Object)}, unless {@link
+   * If {@code false} is returned, this is <i>definitely</i> an indication that the specified filter
+   * contained elements that were not contained in this filter prior to invocation. If the
+   * implementation treats this condition as an error, then this filter can no longer be relied upon
+   * to return correct {@code false} responses from {@link #contains(Object)}, unless {@link
    * #isEmpty()} is also {@code true}.
    *
    * @param f filter containing elements to remove from {@code this} filter. {@code f} is not
@@ -183,7 +183,8 @@ public interface ProbabilisticFilter<E> {
   boolean removeAll(ProbabilisticFilter<E> f);
 
   /**
-   * Returns {@code true} if this filter <i>might</i> contain the specified element.
+   * Returns {@code true} if this filter <i>might</i> contain the specified element, {@cod false} if
+   * this is <i>definitely</i> not the case.
    *
    * @param e element whose containment in this filter is to be tested
    * @return {@code true} if this filter <i>might</i> contain the specified element, {@code false}
