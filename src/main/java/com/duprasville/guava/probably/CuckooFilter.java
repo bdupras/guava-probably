@@ -118,7 +118,7 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
   }
 
   /**
-   * Returns {@code true} if this cuckoo filter <i>might</i> contain the specified element, {@cod
+   * Returns {@code true} if this cuckoo filter <i>might</i> contain the specified element, {@code
    * false} if this is <i>definitely</i> not the case.
    *
    * @throws NullPointerException if the specified element is null and this filter does not permit
@@ -169,21 +169,6 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
     checkCompatibility(f, "compare");
     return this.strategy.containsAll(this.table, ((CuckooFilter) f).table);
   }
-
-  /**
-   * @return {@code true} if {@code e} was successfully added to the filter, {@code false} if this
-   * is <i>definitely</i> not the case. A return value of {@code true} ensures that {@link
-   * #contains(Object)} given {@code e} will also return {@code true}.
-   * @throws UnsupportedOperationException if the {@link #add(Object)} operation is not supported by
-   *                                       this filter
-   * @throws ClassCastException            if the class of the specified element prevents it from
-   *                                       being added to this filter
-   * @throws NullPointerException          if the specified element is null and this filter does not
-   *                                       permit null elements
-   * @throws IllegalArgumentException      if some property of the specified element prevents it
-   *                                       from being added to this filter
-   */
-
 
   /**
    * Adds the specified element to this cuckoo filter.
@@ -245,37 +230,49 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
   }
 
   /**
-   * Removes {@code e} from this {@link CuckooFilter}. {@code e} must have been previously added to
-   * the filter. Removing an {@code e} that hasn't been added to the filter may put the filter in an
-   * inconsistent state causing it to return false negative responses from {@link
-   * #contains(Object)}. <p/> If {@code false} is returned, this is <i>definitely</i> an indication
-   * that either this invocation or a previous invocation has been made without a matching
-   * invocation of {@link #add(Object)}. This condition is always an error and this {@link
-   * CuckooFilter} can no longer be relied upon to return correct {@code false} responses from
-   * {@link #contains(Object)}.
+   * Removes the specified element from this cuckoo filter.
    *
-   * @return true if {@code e} was successfully removed from the filter.
+   * If {@code false} is returned, this is <i>definitely</i> an indication that the specified
+   * element wasn't contained in the filter prior to invocation and the filter can no longer be
+   * relied upon to return correct {@code false} responses from {@link #contains(Object)}, unless
+   * {@link #isEmpty()} is also {@code true}.
+   *
+   * @param e element to be removed from this filter
+   * @return {@code true} if this filter probably contained the specified element, {@code false}
+   * otherwise
+   * @throws NullPointerException if the specified element is null
+   * @see #contains(Object)
    */
   @CheckReturnValue
   public boolean remove(E e) {
+    checkNotNull(e);
     return strategy.remove(e, funnel, table);
   }
 
+
   /**
-   * Removes all elements of {@code c} from this {@link CuckooFilter}. Each element of {@code c}
-   * must represented in the filter before invocation. Removing an element that hasn't been added to
-   * the filter may put the filter in an inconsistent state causing it to return false negative
-   * responses from {@link #contains(Object)}. <p/> If {@code false} is returned, this is
-   * <i>definitely</i> an indication that {@code c} contained at least one element that was not
-   * represented in the filter. This condition is always an error and this {@link CuckooFilter} can
-   * no longer be relied upon to return correct {@code false} responses from {@link
-   * #contains(Object)}.
+   * Removes from this cuckoo filter all of its elements that are contained in the specified
+   * collection. Caller must ensure that all element contained in the specified collection are
+   * contained in the filter prior to invocation.
    *
-   * @return true if {@code e} was successfully removed from the filter.
+   * If {@code false} is returned, this is <i>definitely</i> an indication that the specified
+   * collection contained elements that were not contained in this filter prior to invocation and
+   * the filter can no longer be relied upon to return correct {@code false} responses from {@link
+   * #contains(Object)}, unless {@link #isEmpty()} is also {@code true}.
+   *
+   * @param c collection containing elements to be removed from this filter
+   * @return {@code true} if all of the elements of the specified collection were successfully
+   * removed from the filter, {@code false} if any of the elements was not successfully removed
+   * @throws NullPointerException if the specified collection contains one or more null elements, or
+   *                              if the specified collection is null
+   * @see #remove(Object)
+   * @see #contains(Object)
    */
   @CheckReturnValue
   public boolean removeAll(Collection<? extends E> c) {
+    checkNotNull(c);
     for (E e : c) {
+      checkNotNull(e);
       if (!remove(e)) {
         return false;
       }
@@ -283,6 +280,25 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
     return true;
   }
 
+  /**
+   * Subtracts the specified filter from {@code this} cuckoo filter. The mutations happen to {@code
+   * this} instance. Callers must ensure that the specified filter represents elements that are
+   * currently contained in {@code this} filter.
+   *
+   * If {@code false} is returned, this is <i>definitely</i> an indication that the specified filter
+   * contained elements that were not contained in this filter prior to invocation and this filter
+   * can no longer be relied upon to return correct {@code false} responses from {@link
+   * #contains(Object)}, unless {@link #isEmpty()} is also {@code true}.
+   *
+   * @param f filter containing elements to remove from {@code this} filter. {@code f} is not
+   *          mutated
+   * @return {@code true} if the operation was successful, {@code false} otherwise
+   * @throws NullPointerException     if the specified filter is null
+   * @throws IllegalArgumentException if {@link #isCompatible(ProbabilisticFilter)} {@code == false}
+   *                                  given {@code f}
+   * @see #remove(Object)
+   */
+  @CheckReturnValue
   public boolean removeAll(ProbabilisticFilter<E> f) {
     checkNotNull(f);
     if (this == f) {
@@ -294,20 +310,43 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
   }
 
   /**
-   * Returns the number of inserted items currently represented in the filter.
+   * Returns the number of elements contained in this filter (its cardinality). If this filter
+   * contains more than {@code Long.MAX_VALUE} elements, returns {@code Long.MAX_VALUE}.
+   *
+   * @return the number of elements contained in this filter (its cardinality)
    */
   public long size() {
     return table.size();
   }
 
+  /**
+   * Returns the number of elements this filter can represent at its requested {@code FPP}. It's
+   * possible to add more elements to a cuckoo filter than its capacity since the load factor used
+   * to calculate its storage size is less than 100%.
+   *
+   * @return the number of elements this filter can represent at its requested {@code FPP}.
+   * @see #fpp()
+   * @see #currentFpp()
+   * @see #optimalLoadFactor(int)
+   */
   public long capacity() {
     return capacity;
   }
 
+  /**
+   * Returns the intended {@code FPP} limit of this filter.
+   *
+   * @return the intended {@code FPP} limit of this filter.
+   */
   public double fpp() {
     return fpp;
   }
 
+  /**
+   * Returns {@code true} if this filter contains no elements.
+   *
+   * @return {@code true} if this filter contains no elements
+   */
   public boolean isEmpty() {
     return 0 == size();
   }
@@ -322,11 +361,12 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
 
 
   /**
-   * Returns the probability that {@link #contains(Object)} will erroneously return {@code true} for
-   * an object that has not actually been added to the {@link CuckooFilter}. <p/> <p>This number
-   * should be close to the {@code fpp} parameter passed in when the filter was created, or smaller.
-   * Unlike a bloom filter, a cuckoo filter cannot become saturated to the point of significantly
-   * degrading its {@code FPP}.
+   * Returns the current false positive probability ({@code FPP}) of this filter.
+   *
+   * @return the probability that {@link #contains(Object)} will erroneously return {@code true}
+   * given an element that has not actually been added to the filter. Unlike a bloom filter, a
+   * cuckoo filter cannot become saturated to the point of significantly degrading its {@code FPP}.
+   * @see #fpp()
    */
   public double currentFpp() {
     return table.currentFpp();

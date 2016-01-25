@@ -230,7 +230,7 @@ public class CuckooTable {
   }
 
   public long size() {
-    return size;
+    return size < 0 ? /* indicates overflow */ Long.MAX_VALUE : size;
   }
 
   public long checksum() {

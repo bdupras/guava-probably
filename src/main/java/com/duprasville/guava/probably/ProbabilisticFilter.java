@@ -231,7 +231,7 @@ public interface ProbabilisticFilter<E> {
   /**
    * Returns {@code true} if this filter contains no elements.
    *
-   * @return {@code true} if this collection contains no elements
+   * @return {@code true} if this filter contains no elements
    */
   boolean isEmpty();
 
