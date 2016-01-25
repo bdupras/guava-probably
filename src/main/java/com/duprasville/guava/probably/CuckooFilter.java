@@ -135,11 +135,11 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    * collection, {@code false} if this is <i>definitely</i> not the case.
    *
    * @param c collection containing elements to be checked for containment in this filter
-   * @return {@code true} if this filter <i>might</i> contail all elements of the specified
+   * @return {@code true} if this filter <i>might</i> contain all elements of the specified
    * collection
    * @throws NullPointerException if the specified collection contains one or more null elements, or
    *                              if the specified collection is null
-   * @see #contains(Object)
+   * @see CuckooFilter#contains(Object)
    */
   public boolean containsAll(Collection<? extends E> c) {
     checkNotNull(c);
@@ -225,6 +225,10 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
     return true;
   }
 
+  /**
+   * Removes all of the elements from this cuckoo filter. The filter will be empty after this call
+   * returns.
+   */
   public void clear() {
     table.clear();
   }
@@ -241,7 +245,7 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    * @return {@code true} if this filter probably contained the specified element, {@code false}
    * otherwise
    * @throws NullPointerException if the specified element is null
-   * @see #contains(Object)
+   * @see CuckooFilter#contains(Object)
    */
   @CheckReturnValue
   public boolean remove(E e) {
@@ -265,8 +269,8 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    * removed from the filter, {@code false} if any of the elements was not successfully removed
    * @throws NullPointerException if the specified collection contains one or more null elements, or
    *                              if the specified collection is null
-   * @see #remove(Object)
-   * @see #contains(Object)
+   * @see CuckooFilter#remove(Object)
+   * @see CuckooFilter#contains(Object)
    */
   @CheckReturnValue
   public boolean removeAll(Collection<? extends E> c) {
@@ -296,7 +300,7 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    * @throws NullPointerException     if the specified filter is null
    * @throws IllegalArgumentException if {@link #isCompatible(ProbabilisticFilter)} {@code == false}
    *                                  given {@code f}
-   * @see #remove(Object)
+   * @see CuckooFilter#remove(Object)
    */
   @CheckReturnValue
   public boolean removeAll(ProbabilisticFilter<E> f) {
@@ -325,9 +329,9 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    * to calculate its storage size is less than 100%.
    *
    * @return the number of elements this filter can represent at its requested {@code FPP}.
-   * @see #fpp()
-   * @see #currentFpp()
-   * @see #optimalLoadFactor(int)
+   * @see CuckooFilter#fpp()
+   * @see CuckooFilter#currentFpp()
+   * @see CuckooFilter#optimalLoadFactor(int)
    */
   public long capacity() {
     return capacity;
@@ -366,7 +370,7 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    * @return the probability that {@link #contains(Object)} will erroneously return {@code true}
    * given an element that has not actually been added to the filter. Unlike a bloom filter, a
    * cuckoo filter cannot become saturated to the point of significantly degrading its {@code FPP}.
-   * @see #fpp()
+   * @see CuckooFilter#fpp()
    */
   public double currentFpp() {
     return table.currentFpp();

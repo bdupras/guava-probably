@@ -47,6 +47,9 @@ public interface ProbabilisticFilter<E> {
    *                                       permit null elements
    * @throws IllegalArgumentException      if some property of the specified element prevents it
    *                                       from being added to this filter
+   * @see #contains(Object)
+   * @see #addAll(Collection)
+   * @see #addAll(ProbabilisticFilter)
    */
   @CheckReturnValue
   boolean add(E e);
@@ -66,6 +69,8 @@ public interface ProbabilisticFilter<E> {
    * @throws IllegalStateException         if this filter cannot be combined with the specified
    *                                       filter at this time due to insertion restrictions
    * @see #add(Object)
+   * @see #addAll(Collection)
+   * @see #contains(Object)
    */
   @CheckReturnValue
   boolean addAll(ProbabilisticFilter<E> f);
@@ -90,6 +95,8 @@ public interface ProbabilisticFilter<E> {
    * @throws IllegalStateException         if not all the elements can be added at this time due to
    *                                       insertion restrictions
    * @see #add(Object)
+   * @see #addAll(ProbabilisticFilter)
+   * @see #contains(Object)
    */
   @CheckReturnValue
   boolean addAll(Collection<? extends E> c);
@@ -100,6 +107,8 @@ public interface ProbabilisticFilter<E> {
    *
    * @throws UnsupportedOperationException if the {@link #clear()} method is not supported by this
    *                                       filter
+   * @see #size()
+   * @see #isEmpty()
    */
   void clear();
 
@@ -125,6 +134,8 @@ public interface ProbabilisticFilter<E> {
    * @throws UnsupportedOperationException if the {@link #remove(Object)} operation is not supported
    *                                       by this filter
    * @see #contains(Object)
+   * @see #removeAll(Collection)
+   * @see #removeAll(ProbabilisticFilter)
    */
   @CheckReturnValue
   boolean remove(E e);
@@ -152,8 +163,9 @@ public interface ProbabilisticFilter<E> {
    *                                       (optional), or if the specified collection is null
    * @throws UnsupportedOperationException if the {@link #removeAll(Collection)} operation is not
    *                                       supported by this filter
-   * @see #remove(Object)
    * @see #contains(Object)
+   * @see #remove(Object)
+   * @see #removeAll(ProbabilisticFilter)
    */
   @CheckReturnValue
   boolean removeAll(Collection<? extends E> c);
@@ -177,7 +189,9 @@ public interface ProbabilisticFilter<E> {
    * @throws NullPointerException          if the specified filter is null
    * @throws IllegalArgumentException      if {@link #isCompatible(ProbabilisticFilter)} {@code ==
    *                                       false} given {@code f}
+   * @see #contains(Object)
    * @see #remove(Object)
+   * @see #removeAll(Collection)
    */
   @CheckReturnValue
   boolean removeAll(ProbabilisticFilter<E> f);
@@ -193,6 +207,10 @@ public interface ProbabilisticFilter<E> {
    *                              filter (optional)
    * @throws NullPointerException if the specified element is null and this filter does not permit
    *                              null elements
+   * @see #containsAll(Collection)
+   * @see #containsAll(ProbabilisticFilter)
+   * @see #add(Object)
+   * @see #remove(Object)
    */
   boolean contains(E e);
 
@@ -210,6 +228,7 @@ public interface ProbabilisticFilter<E> {
    *                              this filter does not permit null elements (optional), or if the
    *                              specified collection is null
    * @see #contains(Object)
+   * @see #containsAll(ProbabilisticFilter)
    */
   boolean containsAll(Collection<? extends E> c);
 
@@ -225,6 +244,8 @@ public interface ProbabilisticFilter<E> {
    * @throws NullPointerException          if the specified filter is null
    * @throws IllegalArgumentException      if {@link #isCompatible(ProbabilisticFilter)} {@code ==
    *                                       false} given {@code f}
+   * @see #contains(Object)
+   * @see #containsAll(Collection)
    */
   boolean containsAll(ProbabilisticFilter<E> f);
 
@@ -232,6 +253,7 @@ public interface ProbabilisticFilter<E> {
    * Returns {@code true} if this filter contains no elements.
    *
    * @return {@code true} if this filter contains no elements
+   * @see #size()
    */
   boolean isEmpty();
 
@@ -240,6 +262,8 @@ public interface ProbabilisticFilter<E> {
    * contains more than {@code Long.MAX_VALUE} elements, returns {@code Long.MAX_VALUE}.
    *
    * @return the number of elements contained in this filter (its cardinality)
+   * @see #capacity()
+   * @see #isEmpty()
    */
   long size();
 
@@ -266,6 +290,7 @@ public interface ProbabilisticFilter<E> {
    * @return the number of elements this filter can represent at its requested {@code FPP}.
    * @see #fpp()
    * @see #currentFpp()
+   * @see #size()
    */
   long capacity();
 
@@ -284,6 +309,7 @@ public interface ProbabilisticFilter<E> {
    * saturation) beyond its intended limit.
    *
    * @return the intended {@code FPP} limit of this filter.
+   * @see #currentFpp()
    */
   double fpp();
 }
