@@ -18,15 +18,11 @@ package com.duprasville.guava.probably;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 
-import com.duprasville.guava.probably.CuckooFilter;
-import com.duprasville.guava.probably.CuckooStrategyMurmurBealDupras32;
-
 import junit.framework.TestCase;
 
 import java.util.Random;
 
 import static com.duprasville.guava.probably.CuckooStrategies.MURMUR128_BEALDUPRAS_32;
-import static com.duprasville.guava.probably.CuckooStrategies.RESERVED;
 import static com.duprasville.guava.probably.CuckooStrategies.values;
 import static com.duprasville.guava.probably.CuckooTable.readBits;
 import static com.duprasville.guava.probably.CuckooTable.writeBits;
@@ -136,9 +132,8 @@ public class CuckooStrategiesTest extends TestCase {
    * appending a new constant is allowed.
    */
   public void testCuckooFilterStrategies() {
-    assertThat(values()).hasLength(2);
-    assertEquals(RESERVED, values()[0]);
-    assertEquals(MURMUR128_BEALDUPRAS_32, values()[1]);
+    assertThat(values()).hasLength(1);
+    assertEquals(MURMUR128_BEALDUPRAS_32, values()[0]);
   }
 
   public void testWriteBits() throws Exception {
