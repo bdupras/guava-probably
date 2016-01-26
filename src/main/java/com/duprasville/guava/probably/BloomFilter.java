@@ -171,7 +171,7 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
         this.getClass().getSimpleName() + " instances must have equivalent funnels; the same " +
         "strategy; and the same number of buckets, entries per bucket, and bits per entry.");
 
-    delegate().putAll(((BloomFilter)f).delegate());
+    delegate().putAll(((BloomFilter) f).delegate());
     size += f.size();
     return true;
   }
@@ -233,38 +233,15 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
   }
 
   /**
-   * Determines whether a given bloom filter is compatible with this bloom filter. For two bloom
+   * Returns {@code true} if the specified filter is compatible with {@code this} filter. {@code f}
+   * is considered compatible if {@code this} filter can use it in combinatoric operations (e.g.
+   * {@link #addAll(ProbabilisticFilter)}, {@link #containsAll(ProbabilisticFilter)}).
+   *
+   * For two bloom
    * filters to be compatible, they must:
    *
    * <ul> <li>not be the same instance</li> <li>have the same number of hash functions</li> <li>have
    * the same bit size</li> <li>have the same strategy</li> <li>have equal funnels</li> </ul>
-   *
-   * @param that The bloom filter to check for compatibility.
-   * @see <a target="guavadoc" href="http://google.github.io/guava/releases/snapshot/api/docs/com/google/common/hash/BloomFilter.html#isCompatible(com.google.common.hash.BloomFilter)">com.google.common.hash.BloomFilter#isCompatible(com.google.common.hash.BloomFilter)</a>
-   */
-  public boolean isCompatible(BloomFilter<E> that) {
-    return delegate().isCompatible(that.delegate());
-  }
-
-  @Override
-  public boolean equals(@Nullable Object object) {
-    if (object instanceof com.google.common.hash.BloomFilter) {
-      return delegate().equals(((BloomFilter) object).delegate());
-    } else {
-      return delegate().equals(object);
-    }
-  }
-
-  @Override
-  public int hashCode() {
-    return delegate().hashCode();
-  }
-
-
-  /**
-   * Returns {@code true} if the specified filter is compatible with {@code this} filter. {@code f}
-   * is considered compatible if {@code this} filter can use it in combinatoric operations (e.g.
-   * {@link #addAll(ProbabilisticFilter)}, {@link #containsAll(ProbabilisticFilter)}).
    *
    * @param f filter to check for compatibility with {@code this} filter
    * @return {@code true} if the specified filter is compatible with {@code this} filter
@@ -272,6 +249,7 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
    * @see #addAll(ProbabilisticFilter)
    * @see #containsAll(ProbabilisticFilter)
    * @see #removeAll(ProbabilisticFilter)
+   * @see <a target="guavadoc" href="http://google.github.io/guava/releases/snapshot/api/docs/com/google/common/hash/BloomFilter.html#isCompatible(com.google.common.hash.BloomFilter)">com.google.common.hash.BloomFilter#isCompatible(com.google.common.hash.BloomFilter)</a>
    */
   public boolean isCompatible(ProbabilisticFilter<E> f) {
     checkNotNull(f);
@@ -332,10 +310,6 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
     return 0 == this.size();
   }
 
-  public Funnel<E> funnel() {
-    return funnel;
-  }
-
   /**
    * Returns the number of elements contained in this filter (its cardinality). If this filter
    * contains more than {@code Long.MAX_VALUE} elements, returns {@code Long.MAX_VALUE}.
@@ -379,7 +353,7 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
    * equals(f) == true} but shares no mutable state.
    */
   public static <T> BloomFilter<T> copyOf(BloomFilter<T> f) {
-    return new BloomFilter<T>(f.delegate().copy(), f.funnel(), f.capacity(), f.fpp(), f.size());
+    return new BloomFilter<T>(f.delegate().copy(), f.funnel, f.capacity(), f.fpp(), f.size());
   }
 
   /**
@@ -400,7 +374,6 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
    * @throws UnsupportedOperationException
    */
   public boolean remove(E e) {
-    checkNotNull(e);
     throw new UnsupportedOperationException();
   }
 
@@ -410,7 +383,6 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
    * @throws UnsupportedOperationException
    */
   public boolean removeAll(Collection<? extends E> c) {
-    checkNotNull(c);
     throw new UnsupportedOperationException();
   }
 
@@ -420,8 +392,21 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
    * @throws UnsupportedOperationException
    */
   public boolean removeAll(ProbabilisticFilter<E> f) {
-    checkNotNull(f);
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean equals(@Nullable Object object) {
+    if (object instanceof com.google.common.hash.BloomFilter) {
+      return delegate().equals(((BloomFilter) object).delegate());
+    } else {
+      return delegate().equals(object);
+    }
+  }
+
+  @Override
+  public int hashCode() {
+    return delegate().hashCode();
   }
 
 }
