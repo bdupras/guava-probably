@@ -33,18 +33,18 @@ import javax.annotation.CheckReturnValue;
  */
 public interface ProbabilisticFilter<E> {
   /**
-   * Adds the specified element to this filter (optional operation).
+   * Adds the specified element to this filter (optional operation). A return value of {@code true}
+   * ensures that {@link #contains(Object)} given {@code e} will also return {@code true}.
    *
    * @param e element to be added to this filter
    * @return {@code true} if {@code e} was successfully added to the filter, {@code false} if this
-   * is <i>definitely</i> not the case. A return value of {@code true} ensures that {@link
-   * #contains(Object)} given {@code e} will also return {@code true}.
+   * is <i>definitely</i> not the case
    * @throws UnsupportedOperationException if the {@link #add(Object)} operation is not supported by
    *                                       this filter
    * @throws ClassCastException            if the class of the specified element prevents it from
    *                                       being added to this filter
-   * @throws NullPointerException          if the specified element is null and this filter does not
-   *                                       permit null elements
+   * @throws NullPointerException          if the specified element is {@code null} and this filter
+   *                                       does not permit {@code null} elements
    * @throws IllegalArgumentException      if some property of the specified element prevents it
    *                                       from being added to this filter
    * @see #contains(Object)
@@ -63,7 +63,7 @@ public interface ProbabilisticFilter<E> {
    * @return {@code true} if the operation was successful, {@code false} otherwise
    * @throws UnsupportedOperationException if the {@link #addAll(ProbabilisticFilter)} operation is
    *                                       not supported by this filter
-   * @throws NullPointerException          if the specified filter is null
+   * @throws NullPointerException          if the specified filter is {@code null}
    * @throws IllegalArgumentException      if {@link #isCompatible(ProbabilisticFilter)} {@code ==
    *                                       false}
    * @throws IllegalStateException         if this filter cannot be combined with the specified
@@ -87,9 +87,9 @@ public interface ProbabilisticFilter<E> {
    *                                       supported by this filter
    * @throws ClassCastException            if the class of an element of the specified collection
    *                                       prevents it from being added to this filter
-   * @throws NullPointerException          if the specified collection contains a null element and
-   *                                       this filter does not permit null elements, or if the
-   *                                       specified collection is null
+   * @throws NullPointerException          if the specified collection contains a {@code null}
+   *                                       element and this filter does not permit {@code null}
+   *                                       elements, or if the specified collection is {@code null}
    * @throws IllegalArgumentException      if some property of an element of the specified
    *                                       collection prevents it from being added to this filter
    * @throws IllegalStateException         if not all the elements can be added at this time due to
@@ -129,8 +129,8 @@ public interface ProbabilisticFilter<E> {
    * otherwise
    * @throws ClassCastException            if the type of the specified element is incompatible with
    *                                       this filter (optional)
-   * @throws NullPointerException          if the specified element is null and this filter does not
-   *                                       permit null elements
+   * @throws NullPointerException          if the specified element is {@code null} and this filter
+   *                                       does not permit {@code null} elements
    * @throws UnsupportedOperationException if the {@link #remove(Object)} operation is not supported
    *                                       by this filter
    * @see #contains(Object)
@@ -159,8 +159,9 @@ public interface ProbabilisticFilter<E> {
    * @throws ClassCastException            if the types of one or more elements in the specified
    *                                       collection are incompatible with this filter (optional)
    * @throws NullPointerException          if the specified collection contains one or more null
-   *                                       elements and this filter does not permit null elements
-   *                                       (optional), or if the specified collection is null
+   *                                       elements and this filter does not permit {@code null}
+   *                                       elements (optional), or if the specified collection is
+   *                                       {@code null}
    * @throws UnsupportedOperationException if the {@link #removeAll(Collection)} operation is not
    *                                       supported by this filter
    * @see #contains(Object)
@@ -186,7 +187,7 @@ public interface ProbabilisticFilter<E> {
    * @return {@code true} if the operation was successful, {@code false} otherwise
    * @throws UnsupportedOperationException if the {@link #removeAll(ProbabilisticFilter)} operation
    *                                       is not supported by this filter
-   * @throws NullPointerException          if the specified filter is null
+   * @throws NullPointerException          if the specified filter is {@code null}
    * @throws IllegalArgumentException      if {@link #isCompatible(ProbabilisticFilter)} {@code ==
    *                                       false} given {@code f}
    * @see #contains(Object)
@@ -205,8 +206,8 @@ public interface ProbabilisticFilter<E> {
    * if this is <i>definitely</i> not the case.
    * @throws ClassCastException   if the type of the specified element is incompatible with this
    *                              filter (optional)
-   * @throws NullPointerException if the specified element is null and this filter does not permit
-   *                              null elements
+   * @throws NullPointerException if the specified element is {@code null} and this filter does not
+   *                              permit {@code null} elements
    * @see #containsAll(Collection)
    * @see #containsAll(ProbabilisticFilter)
    * @see #add(Object)
@@ -224,9 +225,9 @@ public interface ProbabilisticFilter<E> {
    * collection
    * @throws ClassCastException   if the types of one or more elements in the specified collection
    *                              are incompatible with this filter (optional)
-   * @throws NullPointerException if the specified collection contains one or more null elements and
-   *                              this filter does not permit null elements (optional), or if the
-   *                              specified collection is null
+   * @throws NullPointerException if the specified collection contains one or more {@code null}
+   *                              elements and this filter does not permit {@code null} elements
+   *                              (optional), or if the specified collection is {@code null}
    * @see #contains(Object)
    * @see #containsAll(ProbabilisticFilter)
    */
@@ -241,7 +242,7 @@ public interface ProbabilisticFilter<E> {
    * specified filter, {@code false} if this is <i>definitely</i> not the case.
    * @throws UnsupportedOperationException if the {@link #containsAll(ProbabilisticFilter)}
    *                                       operation is not supported by this filter
-   * @throws NullPointerException          if the specified filter is null
+   * @throws NullPointerException          if the specified filter is {@code null}
    * @throws IllegalArgumentException      if {@link #isCompatible(ProbabilisticFilter)} {@code ==
    *                                       false} given {@code f}
    * @see #contains(Object)
@@ -275,7 +276,7 @@ public interface ProbabilisticFilter<E> {
    *
    * @param f filter to check for compatibility with {@code this} filter
    * @return {@code true} if the specified filter is compatible with {@code this} filter
-   * @throws NullPointerException if the specified filter is null
+   * @throws NullPointerException if the specified filter is {@code null}
    * @see #addAll(ProbabilisticFilter)
    * @see #containsAll(ProbabilisticFilter)
    * @see #removeAll(ProbabilisticFilter)
