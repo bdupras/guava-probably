@@ -29,15 +29,12 @@
  * {@link com.duprasville.guava.probably.ProbabilisticFilter#contains(Object)}, and {@link
  * com.duprasville.guava.probably.ProbabilisticFilter#currentFpp()}.</li>
  *
- * <li>{@link com.duprasville.guava.probably.CuckooFilter} - cuckoo filter implementation that
+ * <li>{@link com.duprasville.guava.probably.CuckooFilter} - Cuckoo filter implementation that
  * supports deletion.</li>
  *
- * <li>{@link com.duprasville.guava.probably.BloomFilter} - bloom filter implementation backed by
+ * <li>{@link com.duprasville.guava.probably.BloomFilter} - Bloom filter implementation backed by
  * Guava's BloomFilter.</li>
  *
  * </ul>
  */
-@ParametersAreNonnullByDefault package com.duprasville.guava.probably;
-
-import javax.annotation.ParametersAreNonnullByDefault;
-import java.lang.Object;
+package com.duprasville.guava.probably;

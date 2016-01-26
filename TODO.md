@@ -2,7 +2,6 @@ Guava-Probably: TODO List
 =======================================================
 
 =1.0
-* @throws UnsupportedOperationException - true up to java.util.Set
 * Full interface tests on CuckooFilter and BloomFilter
 * double-check CuckooFilter.MIN_FPP value - calculation seems wrong
 

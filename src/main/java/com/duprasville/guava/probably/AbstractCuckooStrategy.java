@@ -12,9 +12,9 @@
  * the License.
  */
 
-package com.duprasville.guava.probably.cuckoo;
+package com.duprasville.guava.probably;
 
-abstract class AbstractCuckooStrategy implements Strategy {
+abstract class AbstractCuckooStrategy implements CuckooStrategy {
   AbstractCuckooStrategy(int ordinal) {
     this.ordinal = ordinal;
   }
@@ -142,8 +142,8 @@ abstract class AbstractCuckooStrategy implements Strategy {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof Strategy) {
-      return ((Strategy)obj).ordinal() == this.ordinal();
+    if (obj instanceof CuckooStrategy) {
+      return ((CuckooStrategy)obj).ordinal() == this.ordinal();
     } else {
       return super.equals(obj);
     }

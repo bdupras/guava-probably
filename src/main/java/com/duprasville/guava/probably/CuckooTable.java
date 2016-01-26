@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.duprasville.guava.probably.cuckoo;
+package com.duprasville.guava.probably;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
@@ -25,7 +25,7 @@ import java.util.Arrays;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.Math.pow;
 
-public class CuckooTable {
+class CuckooTable {
   static final int EMPTY_ENTRY = 0x00;
 
   public long[] data() {

@@ -57,10 +57,6 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
   private final double fpp;
   private long size;
 
-  protected com.google.common.hash.BloomFilter<E> delegate() {
-    return delegate;
-  }
-
   private BloomFilter(com.google.common.hash.BloomFilter<E> delegate, Funnel<E> funnel, long capacity, double fpp, long size) {
     super();
     this.delegate = delegate;
@@ -171,7 +167,7 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
         this.getClass().getSimpleName() + " instances must have equivalent funnels; the same " +
         "strategy; and the same number of buckets, entries per bucket, and bits per entry.");
 
-    delegate().putAll(((BloomFilter) f).delegate());
+    delegate.putAll(((BloomFilter) f).delegate);
     size += f.size();
     return true;
   }
@@ -217,7 +213,7 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
    * @see <a target="guavadoc" href="http://google.github.io/guava/releases/snapshot/api/docs/com/google/common/hash/BloomFilter.html#mightContain(T)">com.google.common.hash.BloomFilter#mightContain(T)</a>
    */
   public boolean contains(E e) {
-    return delegate().mightContain(e);
+    return delegate.mightContain(e);
   }
 
   /**
@@ -229,7 +225,7 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
    * @see <a target="guavadoc" href="http://google.github.io/guava/releases/snapshot/api/docs/com/google/common/hash/BloomFilter.html#put(T)">com.google.common.hash.BloomFilter#put(T)</a>
    */
   public double currentFpp() {
-    return delegate().expectedFpp();
+    return delegate.expectedFpp();
   }
 
   /**
@@ -254,7 +250,7 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
   public boolean isCompatible(ProbabilisticFilter<E> f) {
     checkNotNull(f);
     return (f instanceof BloomFilter) &&
-        this.delegate().isCompatible(((BloomFilter) f).delegate);
+        this.delegate.isCompatible(((BloomFilter) f).delegate);
   }
 
   /**
@@ -353,7 +349,7 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
    * equals(f) == true} but shares no mutable state.
    */
   public static <T> BloomFilter<T> copyOf(BloomFilter<T> f) {
-    return new BloomFilter<T>(f.delegate().copy(), f.funnel, f.capacity(), f.fpp(), f.size());
+    return new BloomFilter<T>(f.delegate.copy(), f.funnel, f.capacity(), f.fpp(), f.size());
   }
 
   /**
@@ -398,15 +394,15 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
   @Override
   public boolean equals(@Nullable Object object) {
     if (object instanceof com.google.common.hash.BloomFilter) {
-      return delegate().equals(((BloomFilter) object).delegate());
+      return delegate.equals(((BloomFilter) object).delegate);
     } else {
-      return delegate().equals(object);
+      return delegate.equals(object);
     }
   }
 
   @Override
   public int hashCode() {
-    return delegate().hashCode();
+    return delegate.hashCode();
   }
 
 }

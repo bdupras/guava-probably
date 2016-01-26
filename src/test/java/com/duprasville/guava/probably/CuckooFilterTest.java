@@ -24,8 +24,6 @@ import com.google.common.testing.EqualsTester;
 import com.google.common.testing.NullPointerTester;
 import com.google.common.testing.SerializableTester;
 
-import com.duprasville.guava.probably.cuckoo.CuckooFilterStrategies;
-
 import junit.framework.TestCase;
 
 import java.io.ByteArrayInputStream;
@@ -50,7 +48,7 @@ public class CuckooFilterTest extends TestCase {
     int numInsertions = 1000000;
     CuckooFilter<String> cf = CuckooFilter.create(
         Funnels.unencodedCharsFunnel(), numInsertions, 0.03,
-        CuckooFilterStrategies.MURMUR128_BEALDUPRAS_32.strategy());
+        CuckooStrategies.MURMUR128_BEALDUPRAS_32.strategy());
 
     // Insert "numInsertions" even numbers into the CF.
     for (int i = 0; i < numInsertions * 2; i += 2) {
@@ -88,7 +86,7 @@ public class CuckooFilterTest extends TestCase {
     int numInsertions = 1000000;
     CuckooFilter<String> cf = CuckooFilter.create(
         Funnels.stringFunnel(UTF_8), numInsertions, 0.03,
-        CuckooFilterStrategies.MURMUR128_BEALDUPRAS_32.strategy());
+        CuckooStrategies.MURMUR128_BEALDUPRAS_32.strategy());
 
     // Insert "numInsertions" even numbers into the CF.
     for (int i = 0; i < numInsertions * 2; i += 2) {

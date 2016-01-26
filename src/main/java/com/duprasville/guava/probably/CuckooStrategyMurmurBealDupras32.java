@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.duprasville.guava.probably.cuckoo;
+package com.duprasville.guava.probably;
 
 import com.google.common.hash.Funnel;
 import com.google.common.hash.HashCode;
@@ -30,11 +30,11 @@ import static com.google.common.math.LongMath.mod;
  * @author Brian Dupras
  * @author Alex Beal
  */
-class CuckooMurmurBealDupras32Strategy extends AbstractCuckooStrategy implements Strategy {
+class CuckooStrategyMurmurBealDupras32 extends AbstractCuckooStrategy implements CuckooStrategy {
   private static final int MAX_RELOCATION_ATTEMPTS = 500;
   private static final HashFunction hashFunction = Hashing.murmur3_128();
 
-  CuckooMurmurBealDupras32Strategy(int ordinal) {
+  CuckooStrategyMurmurBealDupras32(int ordinal) {
     super(ordinal);
   }
 

@@ -12,13 +12,13 @@
  * the License.
  */
 
-package com.duprasville.guava.probably.cuckoo;
+package com.duprasville.guava.probably;
 
 import com.google.common.hash.Funnel;
 
 import java.io.Serializable;
 
-public interface Strategy extends Serializable {
+interface CuckooStrategy extends Serializable {
   int ordinal();
   <T> boolean add(T object, Funnel<? super T> funnel, CuckooTable table);
   <T> boolean remove(T object, Funnel<? super T> funnel, CuckooTable table);
