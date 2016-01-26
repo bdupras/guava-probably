@@ -59,8 +59,8 @@ public interface ProbabilisticFilter<E> {
    * happen to {@code this} instance. Callers must ensure {@code this} filter is appropriately sized
    * to avoid saturating it or running out of space.
    *
-   * @param f filter to be combined into {@code this} filter. {@code f} is not mutated.
-   * @return {@code true} if the operation was successful, {@code false} otherwise.
+   * @param f filter to be combined into {@code this} filter - {@code f} is not mutated
+   * @return {@code true} if the operation was successful, {@code false} otherwise
    * @throws UnsupportedOperationException if the {@link #addAll(ProbabilisticFilter)} operation is
    *                                       not supported by this filter
    * @throws NullPointerException          if the specified filter is null
@@ -82,7 +82,7 @@ public interface ProbabilisticFilter<E> {
    *
    * @param c collection containing elements to be added to this filter
    * @return {@code true} if all elements of the collection were successfully added, {@code false}
-   * otherwise.
+   * otherwise
    * @throws UnsupportedOperationException if the {@link #addAll(Collection)} operation is not
    *                                       supported by this filter
    * @throws ClassCastException            if the class of an element of the specified collection
@@ -197,8 +197,8 @@ public interface ProbabilisticFilter<E> {
   boolean removeAll(ProbabilisticFilter<E> f);
 
   /**
-   * Returns {@code true} if this filter <i>might</i> contain the specified element, {@cod false} if
-   * this is <i>definitely</i> not the case.
+   * Returns {@code true} if this filter <i>might</i> contain the specified element, {@code false}
+   * if this is <i>definitely</i> not the case.
    *
    * @param e element whose containment in this filter is to be tested
    * @return {@code true} if this filter <i>might</i> contain the specified element, {@code false}
@@ -220,7 +220,7 @@ public interface ProbabilisticFilter<E> {
    * #contains(Object)} {@code == true} for all of the elements of the specified collection.
    *
    * @param c collection containing elements to be checked for containment in this filter
-   * @return {@code true} if this filter <i>might</i> contail all elements of the specified
+   * @return {@code true} if this filter <i>might</i> contain all elements of the specified
    * collection
    * @throws ClassCastException   if the types of one or more elements in the specified collection
    *                              are incompatible with this filter (optional)
