@@ -15,6 +15,7 @@
 package com.duprasville.guava.probably;
 
 import com.google.common.hash.Funnel;
+import com.google.common.math.LongMath;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -59,6 +60,11 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
 
   private BloomFilter(com.google.common.hash.BloomFilter<E> delegate, Funnel<E> funnel, long capacity, double fpp, long size) {
     super();
+    checkNotNull(delegate);
+    checkNotNull(funnel);
+    checkArgument(capacity >= 0, "capacity must be positive");
+    checkArgument(fpp >= 0.0 && fpp < 1.0, "fpp must be positive 0.0 <= fpp < 1.0");
+    checkArgument(size >= 0, "size must be positive");
     this.delegate = delegate;
     this.funnel = funnel;
     this.capacity = capacity;
@@ -139,7 +145,7 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
   public boolean add(E e) {
     checkNotNull(e);
     delegate.put(e);
-    size++;
+    size = LongMath.checkedAdd(size, 1L);
     return true;
   }
 
@@ -168,7 +174,7 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
         "strategy; and the same number of buckets, entries per bucket, and bits per entry.");
 
     delegate.putAll(((BloomFilter) f).delegate);
-    size += f.size();
+    size = LongMath.checkedAdd(size, f.sizeLong());
     return true;
   }
 
@@ -233,8 +239,7 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
    * is considered compatible if {@code this} filter can use it in combinatoric operations (e.g.
    * {@link #addAll(ProbabilisticFilter)}, {@link #containsAll(ProbabilisticFilter)}).
    *
-   * For two bloom
-   * filters to be compatible, they must:
+   * For two bloom filters to be compatible, they must:
    *
    * <ul> <li>not be the same instance</li> <li>have the same number of hash functions</li> <li>have
    * the same bit size</li> <li>have the same strategy</li> <li>have equal funnels</li> </ul>
@@ -300,10 +305,10 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
    * Returns {@code true} if this filter contains no elements.
    *
    * @return {@code true} if this filter contains no elements
-   * @see #size()
+   * @see #sizeLong()
    */
   public boolean isEmpty() {
-    return 0 == this.size();
+    return 0 == this.sizeLong();
   }
 
   /**
@@ -314,8 +319,21 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
    * @see #capacity()
    * @see #isEmpty()
    */
+  public long sizeLong() {
+    return size >= 0 ? size : Long.MAX_VALUE /* overflow */;
+  }
+
+  /**
+   * Returns the number of elements contained in this filter (its cardinality). If this filter
+   * contains more than {@code Integer.MAX_VALUE} elements, returns {@code Integer.MAX_VALUE}.
+   *
+   * @return the number of elements contained in this filter (its cardinality)
+   * @see #capacity()
+   * @see #isEmpty()
+   * @see #sizeLong()
+   */
   public long size() {
-    return size;
+    return size > Integer.MAX_VALUE ? Integer.MAX_VALUE : size;
   }
 
   /**
@@ -326,7 +344,7 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
    * @return the number of elements this filter can represent at its requested {@code FPP}.
    * @see #fpp()
    * @see #currentFpp()
-   * @see #size()
+   * @see #sizeLong()
    */
   public long capacity() {
     return capacity;
@@ -349,14 +367,14 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
    * equals(f) == true} but shares no mutable state.
    */
   public static <T> BloomFilter<T> copyOf(BloomFilter<T> f) {
-    return new BloomFilter<T>(f.delegate.copy(), f.funnel, f.capacity(), f.fpp(), f.size());
+    return new BloomFilter<T>(f.delegate.copy(), f.funnel, f.capacity(), f.fpp(), f.sizeLong());
   }
 
   /**
    * Removes all of the elements from this filter. The filter will be empty after this call
    * returns.
    *
-   * @see #size()
+   * @see #sizeLong()
    * @see #isEmpty()
    */
   public void clear() {

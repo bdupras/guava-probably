@@ -63,7 +63,7 @@ public class CuckooStrategiesTest extends TestCase {
       assertTrue("Filter should mightContain " + nextLong + " just after adding",
           filter.contains(nextLong));
       assertEquals("Filter size should be the same as the number of insertions", l + 1,
-          filter.size());
+          filter.sizeLong());
     }
 
     random = new Random(1L);
@@ -79,7 +79,7 @@ public class CuckooStrategiesTest extends TestCase {
       assertTrue("Filter should delete " + nextLong + " after adding a while ago",
           filter.remove(nextLong));
       assertEquals("Filter size should be the same as the number of insertions less the " +
-          "number of deletions", numInsertions - l - 1, filter.size());
+          "number of deletions", numInsertions - l - 1, filter.sizeLong());
     }
 
     final long nextLong = random.nextLong();

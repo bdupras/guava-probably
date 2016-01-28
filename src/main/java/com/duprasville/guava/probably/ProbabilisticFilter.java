@@ -107,7 +107,7 @@ public interface ProbabilisticFilter<E> {
    *
    * @throws UnsupportedOperationException if the {@link #clear()} method is not supported by this
    *                                       filter
-   * @see #size()
+   * @see #sizeLong()
    * @see #isEmpty()
    */
   void clear();
@@ -254,7 +254,7 @@ public interface ProbabilisticFilter<E> {
    * Returns {@code true} if this filter contains no elements.
    *
    * @return {@code true} if this filter contains no elements
-   * @see #size()
+   * @see #sizeLong()
    */
   boolean isEmpty();
 
@@ -265,6 +265,21 @@ public interface ProbabilisticFilter<E> {
    * @return the number of elements contained in this filter (its cardinality)
    * @see #capacity()
    * @see #isEmpty()
+   * @see #size()
+   */
+  long sizeLong();
+
+  /**
+   * Returns the number of elements contained in this filter (its cardinality). If this filter
+   * contains more than {@code Integer.MAX_VALUE} elements, returns {@code Integer.MAX_VALUE}. Use
+   * {@link #sizeLong()} to obtain filter sizes lager than {@code Integer.MAX_VALUE};
+   *
+   * <p>This method is provided for consistency with the Collections API.</p>
+   *
+   * @return the number of elements contained in this filter (its cardinality)
+   * @see #capacity()
+   * @see #isEmpty()
+   * @see #sizeLong()
    */
   long size();
 
@@ -291,7 +306,7 @@ public interface ProbabilisticFilter<E> {
    * @return the number of elements this filter can represent at its requested {@code FPP}.
    * @see #fpp()
    * @see #currentFpp()
-   * @see #size()
+   * @see #sizeLong()
    */
   long capacity();
 

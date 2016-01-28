@@ -52,7 +52,7 @@ import static java.math.RoundingMode.HALF_DOWN;
  * deletions substantially in both time and space." - Fan, et. al.</blockquote>
  *
  * <p>Cuckoo filters offer constant time performance for the basic operations {@link #add(Object)},
- * {@link #remove(Object)}, {@link #contains(Object)} and {@link #size()}.</p>
+ * {@link #remove(Object)}, {@link #contains(Object)} and {@link #sizeLong()}.</p>
  *
  * <p>This class does not permit {@code null} elements.</p>
  *
@@ -185,11 +185,12 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
   /**
    * Adds the specified element to this filter. Returns {@code true} if {@code e} was successfully
    * added to the filter, {@code false} if this is <i>definitely</i> not the case, as would be the
-   * case when the filter becomes saturated. Saturation may occur even if {@link #size()} {@code < }
-   * {@link #capacity()}, e.g. if {@code e} has already been added {@code 2*b} times to the cuckoo
-   * filter, it will have saturated the number of entries per bucket ({@code b}) allocated within
-   * the filter and a subsequent invocation will return {@code false}. A return value of {@code
-   * true} ensures that {@link #contains(Object)} given {@code e} will also return {@code true}.
+   * case when the filter becomes saturated. Saturation may occur even if {@link #sizeLong()} {@code
+   * < } {@link #capacity()}, e.g. if {@code e} has already been added {@code 2*b} times to the
+   * cuckoo filter, it will have saturated the number of entries per bucket ({@code b}) allocated
+   * within the filter and a subsequent invocation will return {@code false}. A return value of
+   * {@code true} ensures that {@link #contains(Object)} given {@code e} will also return {@code
+   * true}.
    *
    * @param e element to be added to this filter
    * @return {@code true} if {@code e} was successfully added to the filter, {@code false} if this
@@ -234,8 +235,8 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    * operation is undefined if the specified collection is modified while the operation is in
    * progress. Some elements of {@code c} may have been added to the filter even when {@code false}
    * is returned. In this case, the caller may {@link #remove(Object)} the additions by comparing
-   * the filter {@link #size()} before and after the invocation, knowing that additions from {@code
-   * c} occurred in {@code c}'s iteration order.
+   * the filter {@link #sizeLong()} before and after the invocation, knowing that additions from
+   * {@code c} occurred in {@code c}'s iteration order.
    *
    * @param c collection containing elements to be added to this filter
    * @return {@code true} if all elements of the collection were successfully added, {@code false}
@@ -261,7 +262,7 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    * Removes all of the elements from this filter. The filter will be empty after this call
    * returns.
    *
-   * @see #size()
+   * @see #sizeLong()
    * @see #isEmpty()
    */
   public void clear() {
@@ -304,8 +305,8 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    *
    * Some elements of {@code c} may have been removed from the filter even when {@code false} is
    * returned. In this case, the caller may {@link #add(Object)} the additions by comparing the
-   * filter {@link #size()} before and after the invocation, knowing that removals from {@code c}
-   * occurred in {@code c}'s iteration order.
+   * filter {@link #sizeLong()} before and after the invocation, knowing that removals from {@code
+   * c} occurred in {@code c}'s iteration order.
    *
    * @param c collection containing elements to be removed from this filter
    * @return {@code true} if all of the elements of the specified collection were successfully
@@ -364,12 +365,26 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    * contains more than {@code Long.MAX_VALUE} elements, returns {@code Long.MAX_VALUE}.
    *
    * @return the number of elements contained in this filter (its cardinality)
-   * @todo rename to sizeLong(), and introduce {@code int size()}
    * @see #capacity()
    * @see #isEmpty()
+   * @see #size()
+   */
+  public long sizeLong() {
+    return table.size();
+  }
+
+  /**
+   * Returns the number of elements contained in this filter (its cardinality). If this filter
+   * contains more than {@code Integer.MAX_VALUE} elements, returns {@code Integer.MAX_VALUE}.
+   *
+   * @return the number of elements contained in this filter (its cardinality)
+   * @see #capacity()
+   * @see #isEmpty()
+   * @see #sizeLong()
    */
   public long size() {
-    return table.size();
+    final long ret = sizeLong();
+    return ret > Integer.MAX_VALUE ? Integer.MAX_VALUE : ret;
   }
 
   /**
@@ -380,7 +395,7 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    * @return the number of elements this filter can represent at its requested {@code FPP}.
    * @see #fpp()
    * @see #currentFpp()
-   * @see #size()
+   * @see #sizeLong()
    * @see #optimalLoadFactor(int)
    */
   public long capacity() {
@@ -415,10 +430,10 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    * Returns {@code true} if this filter contains no elements.
    *
    * @return {@code true} if this filter contains no elements
-   * @see #size()
+   * @see #sizeLong()
    */
   public boolean isEmpty() {
-    return 0 == size();
+    return 0 == sizeLong();
   }
 
   /**
@@ -844,7 +859,7 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
         ", capacity=" + capacity +
         ", fpp=" + fpp +
         ", currentFpp=" + currentFpp() +
-        ", size=" + size() +
+        ", size=" + sizeLong() +
         '}';
   }
 
