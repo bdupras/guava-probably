@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Random;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
@@ -99,12 +100,13 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    * Creates a CuckooFilter.
    */
   private CuckooFilter(
-      CuckooTable table, Funnel<? super E> funnel, CuckooStrategy cuckooStrategy, long capacity, double fpp) {
-    this.capacity = capacity;
+      CuckooTable table, Funnel<? super E> funnel, CuckooStrategy cuckooStrategy, double fpp) {
     this.fpp = fpp;
     this.table = checkNotNull(table);
     this.funnel = checkNotNull(funnel);
     this.cuckooStrategy = checkNotNull(cuckooStrategy);
+    this.capacity = (long) Math.floor(table.capacity() *
+        optimalLoadFactor(table.numEntriesPerBucket()));
   }
 
   /**
@@ -113,7 +115,7 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    */
   @CheckReturnValue
   public CuckooFilter<E> copy() {
-    return new CuckooFilter<E>(table.copy(), funnel, cuckooStrategy, capacity, fpp);
+    return new CuckooFilter<E>(table.copy(), funnel, cuckooStrategy, fpp);
   }
 
   /**
@@ -389,8 +391,8 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
 
   /**
    * Returns the number of elements this filter can represent at its requested {@code FPP}. It's
-   * possible to add more elements to a cuckoo filter than its capacity since the load factor used
-   * to calculate its optimal storage size is less than 100%.
+   * sometimes possible to add more elements to a cuckoo filter than its capacity since the load
+   * factor used to calculate its optimal storage size is less than 100%.
    *
    * @return the number of elements this filter can represent at its requested {@code FPP}.
    * @see #fpp()
@@ -534,7 +536,7 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
 
     try {
       return new CuckooFilter<T>(new CuckooTable(numBuckets,
-          numEntriesPerBucket, numBitsPerEntry), funnel, cuckooStrategy, capacity, fpp);
+          numEntriesPerBucket, numBitsPerEntry), funnel, cuckooStrategy, fpp);
     } catch (IllegalArgumentException e) {
       throw new IllegalArgumentException("Could not create CuckooFilter of " + numBuckets +
           " buckets, " + numEntriesPerBucket + " entries per bucket, " + numBitsPerEntry +
@@ -701,6 +703,9 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
     return table.bitSize();
   }
 
+  public void fill(Random random) {
+    this.table.fill(random);
+  }
 
   private static class SerialForm<T> implements Serializable {
     final long[] data;
@@ -730,7 +735,7 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
     Object readResolve() {
       return new CuckooFilter<T>(
           new CuckooTable(data, size, checksum, numBuckets, numEntriesPerBucket, numBitsPerEntry),
-          funnel, cuckooStrategy, capacity, fpp);
+          funnel, cuckooStrategy, fpp);
     }
 
     private static final long serialVersionUID = 1;
@@ -817,7 +822,7 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
       }
       return new CuckooFilter<T>(
           new CuckooTable(data, size, checksum, numBuckets, numEntriesPerBucket, numBitsPerEntry),
-          funnel, cuckooStrategy, capacity, fpp);
+          funnel, cuckooStrategy, fpp);
     } catch (RuntimeException e) {
       IOException ioException = new IOException(
           "Unable to deserialize CuckooFilter from InputStream."
@@ -866,7 +871,7 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
   private void checkCompatibility(ProbabilisticFilter<E> f, String verb) {
     checkArgument(f instanceof CuckooFilter, "Cannot" + verb + " a " +
         this.getClass().getSimpleName() + " with a " + f.getClass().getSimpleName());
-    checkArgument(this.isCompatible(f), "Cannot" + verb + " incompatible filters. " +
+    checkArgument(this.isCompatible(f), "Cannot " + verb + " incompatible filters. " +
         this.getClass().getSimpleName() + " instances must have equivalent funnels; the same " +
         "strategy; and the same number of buckets, entries per bucket, and bits per entry.");
   }

@@ -18,13 +18,17 @@ abstract class AbstractCuckooStrategy implements CuckooStrategy {
   AbstractCuckooStrategy(int ordinal) {
     this.ordinal = ordinal;
   }
+
   public abstract long index(int hash, long m);
+
   public abstract long altIndex(long index, int fingerprint, long m);
 
   protected abstract int pickEntryToKick(int numEntriesPerBucket);
+
   protected abstract long maxRelocationAttempts();
 
   private final int ordinal;
+
   public int ordinal() {
     return ordinal;
   }
@@ -108,7 +112,7 @@ abstract class AbstractCuckooStrategy implements CuckooStrategy {
             thiz.countEntry(fingerprint, altIndex(index, fingerprint, thiz.numBuckets));
         int thatCount = that.countEntry(fingerprint, index) +
             that.countEntry(fingerprint, altIndex(index, fingerprint, that.numBuckets));
-        if (thizCount >= thatCount) {
+        if (thizCount < thatCount) {
           return false;
         }
       }
@@ -128,12 +132,14 @@ abstract class AbstractCuckooStrategy implements CuckooStrategy {
           continue;
         }
 
-        int thizCount = thiz.countEntry(fingerprint, index) +
-            thiz.countEntry(fingerprint, altIndex(index, fingerprint, thiz.numBuckets));
-        int thatCount = that.countEntry(fingerprint, index) +
-            that.countEntry(fingerprint, altIndex(index, fingerprint, that.numBuckets));
-        if (thizCount >= thatCount) {
-          return false;
+        long altIndex = altIndex(index, fingerprint, thiz.numBuckets);
+        int thatCount = that.countEntry(fingerprint, index) + that.countEntry(fingerprint, altIndex);
+
+        for (int i = 0; i < thatCount; i++) {
+          if (!(thiz.swapAnyEntry(CuckooTable.EMPTY_ENTRY, fingerprint, index)
+              || thiz.swapAnyEntry(CuckooTable.EMPTY_ENTRY, fingerprint, altIndex))) {
+            return false;
+          }
         }
       }
     }
@@ -143,7 +149,7 @@ abstract class AbstractCuckooStrategy implements CuckooStrategy {
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof CuckooStrategy) {
-      return ((CuckooStrategy)obj).ordinal() == this.ordinal();
+      return ((CuckooStrategy) obj).ordinal() == this.ordinal();
     } else {
       return super.equals(obj);
     }

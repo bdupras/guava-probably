@@ -29,7 +29,7 @@ import static com.google.common.truth.Truth.assertWithMessage;
  *
  * @author Brian Dupras
  */
-public class ProbabilisticFilterTest extends TestCase {
+public class ProbabilisticFilterImplsTest extends TestCase {
   Random random = new Random(1L);
 
   public void testBloom() throws Exception {
