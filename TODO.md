@@ -2,7 +2,6 @@ Guava-Probably: TODO List
 =======================================================
 
 =1.0
-* ProbabilisticFilter interface tests on BloomFilter
 * Serializable interface tests on BloomFilter
 * Serializable interface tests on CuckooFilter
 * double-check CuckooFilter.MIN_FPP value - calculation seems wrong

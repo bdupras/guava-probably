@@ -281,24 +281,12 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
   }
 
   /**
-   * Returns {@code true} if this filter <i>might</i> contain all elements contained in the
-   * specified filter.
+   * Not supported.
    *
-   * @param f filter containing elements to be checked for probable containment in this filter
-   * @return {@code true} if this filter <i>might</i> contain all elements contained in the
-   * specified filter, {@code false} if this is <i>definitely</i> not the case.
-   * @throws NullPointerException     if the specified filter is {@code null}
-   * @throws IllegalArgumentException if {@link #isCompatible(ProbabilisticFilter)} {@code == false}
-   *                                  given {@code f}
-   * @see #contains(Object)
-   * @see #containsAll(Collection)
+   * @throws UnsupportedOperationException
    */
   public boolean containsAll(ProbabilisticFilter<E> f) {
-    checkNotNull(f);
-    if (!isCompatible(f)) {
-      throw new IllegalArgumentException("Cannot compare incompatible filters.");
-    }
-    return equals(f);
+    throw new UnsupportedOperationException();
   }
 
   /**

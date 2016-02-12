@@ -26,6 +26,8 @@ import com.google.common.testing.SerializableTester;
 
 import junit.framework.TestCase;
 
+import org.junit.Test;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.math.RoundingMode;
@@ -35,6 +37,11 @@ import javax.annotation.Nullable;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.truth.Truth.assertThat;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotSame;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 
 /**
  * Tests for CuckooFilter.
@@ -43,8 +50,9 @@ import static com.google.common.truth.Truth.assertThat;
  *
  * @author Brian Dupras
  */
-public class CuckooFilterTest extends TestCase {
-  public void testCreateAndCheckBealDupras32CuckooFilterWithKnownFalsePositives() {
+public class CuckooFilterTest {
+  @Test
+  public void createAndCheckBealDupras32CuckooFilterWithKnownFalsePositives() {
     int numInsertions = 1000000;
     CuckooFilter<String> cf = CuckooFilter.create(
         Funnels.unencodedCharsFunnel(), numInsertions, 0.03,
@@ -82,7 +90,8 @@ public class CuckooFilterTest extends TestCase {
     assertEquals((double) expectedNumFpp / numInsertions, cf.currentFpp(), 0.00035);
   }
 
-  public void testCreateAndCheckBealDupras32CuckooFilterWithKnownUtf8FalsePositives() {
+  @Test
+  public void createAndCheckBealDupras32CuckooFilterWithKnownUtf8FalsePositives() {
     int numInsertions = 1000000;
     CuckooFilter<String> cf = CuckooFilter.create(
         Funnels.stringFunnel(UTF_8), numInsertions, 0.03,
@@ -124,7 +133,8 @@ public class CuckooFilterTest extends TestCase {
   /**
    * Sanity checking with many combinations of false positive rates and expected insertions
    */
-  public void testBasic() {
+  @Test
+  public void basic() {
     for (double fpr = 0.0000001; fpr < 0.1; fpr *= 10) {
       for (int capacity = 1; capacity <= 10000; capacity *= 10) {
         final CuckooFilter<Object> cf = CuckooFilter.create(BAD_FUNNEL,
@@ -143,7 +153,8 @@ public class CuckooFilterTest extends TestCase {
   }
 
   @SuppressWarnings("CheckReturnValue")
-  public void testPreconditions() {
+  @Test
+  public void preconditions() {
     try {
       CuckooFilter.create(Funnels.unencodedCharsFunnel(), -1);
       fail();
@@ -167,7 +178,8 @@ public class CuckooFilterTest extends TestCase {
   }
 
   @SuppressWarnings("CheckReturnValue")
-  public void testFailureWhenMoreThan64BitFingerprintsAreNeeded() {
+  @Test
+  public void failureWhenMoreThan64BitFingerprintsAreNeeded() {
     try {
       int n = 1000;
       double p = 0.00000000000000000000000000000000000000000000000000000000000000000000000000000001;
@@ -177,7 +189,8 @@ public class CuckooFilterTest extends TestCase {
     }
   }
 
-  public void testNullPointers() {
+  @Test
+  public void nullPointers() {
     NullPointerTester tester = new NullPointerTester();
     tester.testAllPublicInstanceMethods(CuckooFilter.create(Funnels.unencodedCharsFunnel(), 100));
     tester.testAllPublicStaticMethods(CuckooFilter.class);
@@ -187,7 +200,8 @@ public class CuckooFilterTest extends TestCase {
    * Tests that we always get a non-negative optimal size.
    */
   @SuppressWarnings("CheckReturnValue")
-  public void testOptimalSize() {
+  @Test
+  public void optimalSize() {
     for (int n = 1; n < 1000; n++) {
       for (double fpp = CuckooFilter.MIN_FPP; fpp <= CuckooFilter.MAX_FPP; fpp += 0.001) {
         assertTrue(CuckooFilter.optimalEntriesPerBucket(fpp) >= 2);
@@ -227,35 +241,24 @@ public class CuckooFilterTest extends TestCase {
     }
   }
 
-  public void testLargeNumberOfInsertions() {
+  @Test
+  public void largeNumberOfInsertions() {
     // We don't actually allocate a CuckooFilter here to keep Java from OOM'ing
     CuckooFilter.calculateDataLength(3L * Integer.MAX_VALUE, 0.0001D);
     CuckooFilter.calculateDataLength(6L * Integer.MAX_VALUE, 0.03D);
     CuckooFilter.calculateDataLength(26L * Integer.MAX_VALUE, CuckooFilter.MAX_FPP);
   }
 
-  public void testCopy() {
+  @Test
+  public void copy() {
     CuckooFilter<String> original = CuckooFilter.create(Funnels.unencodedCharsFunnel(), 100);
     CuckooFilter<String> copy = original.copy();
     assertNotSame(original, copy);
     assertEquals(original, copy);
   }
 
-  public void testExpectedFpp() {
-    CuckooFilter<Object> cf = CuckooFilter.create(BAD_FUNNEL, 10, 0.03);
-    double fpp = cf.currentFpp();
-    assertEquals(0.0, fpp);
-    // usually completed in less than 15 iterations
-    while (fpp <= 0.03) { // fpp of a CF does not approach 1.0 like a BF does
-      boolean successful = cf.add(new Object());
-      double newFpp = cf.currentFpp();
-      // if successful, the new fpp is strictly higher, otherwise it is the same
-      assertTrue(successful ? newFpp > fpp : newFpp == fpp);
-      fpp = newFpp;
-    }
-  }
-
-  public void testBitSize() {
+  @Test
+  public void bitSize() {
     double fpp = 0.03;
     for (int i = 1; i < 10000; i++) {
       long numBits = CuckooFilter.calculateDataLength(i, fpp) * Long.SIZE;
@@ -266,7 +269,8 @@ public class CuckooFilterTest extends TestCase {
     }
   }
 
-  public void testEquals_empty() {
+  @Test
+  public void equals_empty() {
     new EqualsTester()
         .addEqualityGroup(CuckooFilter.create(Funnels.byteArrayFunnel(), 100, 0.01))
         .addEqualityGroup(CuckooFilter.create(Funnels.byteArrayFunnel(), 100, 0.02))
@@ -279,7 +283,8 @@ public class CuckooFilterTest extends TestCase {
         .testEquals();
   }
 
-  public void testEquals() {
+  @Test
+  public void equals() {
     CuckooFilter<String> cf1 = CuckooFilter.create(Funnels.unencodedCharsFunnel(), 100);
     cf1.add("1");
     cf1.add("2");
@@ -307,7 +312,8 @@ public class CuckooFilterTest extends TestCase {
 
   }
 
-  public void testEquals2() {
+  @Test
+  public void equals2() {
     // numInsertions param undersized purposely to force underlying storage saturation
     CuckooFilter<String> cf1 = CuckooFilter.create(Funnels.unencodedCharsFunnel(), 2);
     cf1.add("1");
@@ -329,13 +335,15 @@ public class CuckooFilterTest extends TestCase {
         .testEquals();
   }
 
-  public void testEqualsWithCustomFunnel() {
+  @Test
+  public void equalsWithCustomFunnel() {
     CuckooFilter<Long> cf1 = CuckooFilter.create(new CustomFunnel(), 100);
     CuckooFilter<Long> cf2 = CuckooFilter.create(new CustomFunnel(), 100);
     assertEquals(cf1, cf2);
   }
 
-  public void testSerializationWithCustomFunnel() {
+  @Test
+  public void serializationWithCustomFunnel() {
     SerializableTester.reserializeAndAssert(CuckooFilter.create(new CustomFunnel(), 100));
   }
 
@@ -355,7 +363,8 @@ public class CuckooFilterTest extends TestCase {
     }
   }
 
-  public void testPutReturnValue() {
+  @Test
+  public void addReturnValue() {
     for (int i = 0; i < 10; i++) {
       CuckooFilter<String> cf = CuckooFilter.create(Funnels.unencodedCharsFunnel(), 100);
       for (int j = 0; j < 10; j++) {
@@ -369,7 +378,8 @@ public class CuckooFilterTest extends TestCase {
     }
   }
 
-  public void testPutAll() {
+  @Test
+  public void addAll() {
     int element1 = 1;
     int element2 = 2;
 
@@ -391,7 +401,8 @@ public class CuckooFilterTest extends TestCase {
     assertTrue(cf2.contains(element2));
   }
 
-  public void testPutAllFails() {
+  @Test
+  public void addAllFails() {
     int element = 1;
 
     CuckooFilter<Integer> cf1 = CuckooFilter.create(Funnels.integerFunnel(), 100);
@@ -410,7 +421,8 @@ public class CuckooFilterTest extends TestCase {
         cf1.addAll(cf2));
   }
 
-  public void testPutAllDifferentSizes() {
+  @Test
+  public void addAllDifferentSizes() {
     CuckooFilter<Integer> cf1 = CuckooFilter.create(Funnels.integerFunnel(), 1);
     CuckooFilter<Integer> cf2 = CuckooFilter.create(Funnels.integerFunnel(), 10);
 
@@ -429,7 +441,8 @@ public class CuckooFilterTest extends TestCase {
     }
   }
 
-  public void testPutAllWithSelf() {
+  @Test
+  public void addAllWithSelf() {
     CuckooFilter<Integer> cf1 = CuckooFilter.create(Funnels.integerFunnel(), 1);
     try {
       assertFalse(cf1.isCompatible(cf1));
@@ -439,7 +452,8 @@ public class CuckooFilterTest extends TestCase {
     }
   }
 
-  public void testJavaSerialization() {
+  @Test
+  public void javaSerialization() {
     CuckooFilter<byte[]> cf = CuckooFilter.create(Funnels.byteArrayFunnel(), 100);
     for (int i = 0; i < 10; i++) {
       cf.add(Ints.toByteArray(i));
@@ -454,7 +468,8 @@ public class CuckooFilterTest extends TestCase {
     SerializableTester.reserializeAndAssert(cf);
   }
 
-  public void testCustomSerialization() throws Exception {
+  @Test
+  public void customSerialization() throws Exception {
     Funnel<byte[]> funnel = Funnels.byteArrayFunnel();
     CuckooFilter<byte[]> cf = CuckooFilter.create(funnel, 100);
     for (int i = 0; i < 100; i++) {

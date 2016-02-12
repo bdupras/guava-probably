@@ -15,9 +15,6 @@
 
 package com.duprasville.guava.probably;
 
-import com.google.common.hash.BloomFilter;
-import com.google.common.hash.Funnels;
-
 import junit.framework.TestCase;
 
 import java.util.Random;
@@ -34,59 +31,6 @@ import static com.google.common.truth.Truth.assertThat;
  * @author Brian Dupras
  */
 public class CuckooStrategiesTest extends TestCase {
-  public void testBloom() throws Exception {
-    int numInsertions = 1000000;
-    double fpp = 0.03D;
-    Random random = new Random(1L);
-
-    BloomFilter<Long> filter = BloomFilter.create(Funnels.longFunnel(), numInsertions, fpp);
-    for (int l = 0; l < numInsertions; l++) {
-      filter.put(random.nextLong());
-    }
-
-    random = new Random(1L);
-    for (int l = 0; l < numInsertions; l++) {
-      assertTrue(filter.mightContain(random.nextLong()));
-    }
-  }
-
-  public void testCuckoo() throws Exception {
-    int numInsertions = 1000000;
-    double fpp = 0.03D;
-    Random random = new Random(1L);
-
-    CuckooFilter<Long> filter = CuckooFilter.create(Funnels.longFunnel(), numInsertions, fpp);
-
-    for (int l = 0; l < numInsertions; l++) {
-      final long nextLong = random.nextLong();
-      assertTrue("Filter should put " + nextLong, filter.add(nextLong));
-      assertTrue("Filter should mightContain " + nextLong + " just after adding",
-          filter.contains(nextLong));
-      assertEquals("Filter size should be the same as the number of insertions", l + 1,
-          filter.sizeLong());
-    }
-
-    random = new Random(1L);
-    for (int l = 0; l < numInsertions; l++) {
-      final long nextLong = random.nextLong();
-      assertTrue("Filter should mightContain " + nextLong + " after adding a while ago",
-          filter.contains(nextLong));
-    }
-
-    random = new Random(1L);
-    for (int l = 0; l < numInsertions; l++) {
-      final long nextLong = random.nextLong();
-      assertTrue("Filter should delete " + nextLong + " after adding a while ago",
-          filter.remove(nextLong));
-      assertEquals("Filter size should be the same as the number of insertions less the " +
-          "number of deletions", numInsertions - l - 1, filter.sizeLong());
-    }
-
-    final long nextLong = random.nextLong();
-    assertFalse("Filter should NOT delete " + nextLong + " since it should be empty!!",
-        filter.remove(nextLong));
-  }
-
   public void testFingerprintBoundaries() throws Exception {
     assertThat(CuckooStrategyMurmurBealDupras32.fingerprint(0x80000000, 1)).isEqualTo(0x01);
     assertThat(CuckooStrategyMurmurBealDupras32.fingerprint(0xC0000000, 2)).isEqualTo(0x03);

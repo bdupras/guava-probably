@@ -699,10 +699,6 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
     return table.bitSize();
   }
 
-  public void fill(Random random) {
-    this.table.fill(random);
-  }
-
   private static class SerialForm<T> implements Serializable {
     final long[] data;
     final long size;

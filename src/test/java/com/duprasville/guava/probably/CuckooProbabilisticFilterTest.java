@@ -1,16 +1,10 @@
 package com.duprasville.guava.probably;
 
-import com.google.common.hash.Funnel;
 import com.google.common.hash.Funnels;
-import com.google.common.hash.PrimitiveSink;
 
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Random;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static junit.framework.Assert.assertEquals;
@@ -18,48 +12,9 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
-public class CuckooProbabilisticFilterTest {
-  static final int FILTER_CAPACITY = 1000000;
-  static double FILTER_FPP = 0.002D;
-  ProbabilisticFilter<String> filter;
-  ProbabilisticFilter<String> filter2;
-
-  static final int TINY_FILTER_CAPACITY = 1;
-  static final double TINY_FILTER_FPP = 0.002D;
-  ProbabilisticFilter<String> tinyFilter;
-
-
-  private CuckooFilter<String> filter() {
-    return CuckooFilter.create(Funnels.stringFunnel(UTF_8), FILTER_CAPACITY, FILTER_FPP);
-  }
-
-  private CuckooFilter<String> objectFilter() {
-    return CuckooFilter.create(new Funnel<Object>() {
-      public void funnel(Object from, PrimitiveSink into) {
-        into.putInt(from.hashCode());
-      }
-    }, FILTER_CAPACITY, FILTER_FPP);
-  }
-
-  private CuckooFilter<String> tinyFilter() {
-    return CuckooFilter.create(Funnels.stringFunnel(UTF_8), TINY_FILTER_CAPACITY, TINY_FILTER_FPP);
-  }
-
-  private CuckooFilter<String> bigFilter() {
-    return CuckooFilter.create(Funnels.stringFunnel(UTF_8), 10L + Integer.MAX_VALUE, FILTER_FPP);
-  }
-
-  @Before
-  public void setUp() {
-    filter = filter();
-    filter2 = filter();
-    tinyFilter = tinyFilter();
-  }
-
-  @Test
-  public void addEShouldReturnTrueWhenFilterIsNotFull() {
-    assertTrue(filter.add("foo"));
-    assertTrue(filter.contains("foo"));
+public class CuckooProbabilisticFilterTest extends AbstractProbabilisticFilterTest {
+  ProbabilisticFilter<CharSequence> filter(int capacity, double fpp) {
+    return CuckooFilter.create(Funnels.stringFunnel(UTF_8), capacity, fpp);
   }
 
   @Test
@@ -70,65 +25,28 @@ public class CuckooProbabilisticFilterTest {
     assertFalse(tinyFilter.add("bust"));
   }
 
-  @Test(expected = NullPointerException.class)
-  public void addNullShouldThrowNullPointerException() {
-    filter.add(null);
-    fail();
-  }
-
-  @Test
-  public void addAllCollectionOfEShouldReturnTrue() {
-    assertTrue(filter.addAll(Arrays.asList("foo", "bar")));
-    assertTrue(filter.containsAll(Arrays.asList("bar", "foo")));
-  }
-
-  @Test(expected = NullPointerException.class)
-  public void addAllNullCollectionShouldThrowNullPointerException() {
-    filter.addAll((Collection<String>) null);
-    fail();
-  }
-
-  @Test(expected = NullPointerException.class)
-  public void addAllCollectionOfEContainingNullShouldThrowNullPointerException() {
-    filter.addAll(Arrays.asList("foo", "bar", null));
-    fail();
-  }
-
   @Test
   public void addAllCollectionOfEContainingTooManyItemsShouldReturnFalse() {
-    System.out.println(tinyFilter.capacity());
     assertFalse(tinyFilter.addAll(Arrays.asList("foo", "bar", "baz", "boz", "foz", "biz", "fiz",
         "fuz", "buz")));
   }
 
   @Test
-  public void addAllProbabilisticFilterOfEShouldReturnTrue() {
-    assert filter.addAll(Arrays.asList("foo", "bar", "baz", "boz", "foz"));
-    assert filter2.addAll(Arrays.asList("foo2", "bar2", "baz2", "boz2", "foz2"));
-    assertTrue(filter.addAll(filter2));
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void addAllProbabilisticFilterOfEThatIsNotCompatibleShouldThrowIllegalArgumentException() {
-    filter.addAll(tinyFilter);
-    fail();
-  }
-
-  @Test(expected = NullPointerException.class)
-  public void addAllNullProbabilisticFilterShouldThrowNullPointerException() {
-    filter.addAll((ProbabilisticFilter<String>) null);
-    fail();
+  public void containsAllProbabilisticFilterOfEThatIsFullyContainedShouldReturnTrue() {
+    assert filter.addAll(Arrays.asList("foo", "bar", "baz"));
+    assert filter2.addAll(Arrays.asList("foo", "bar"));
+    assertTrue(filter.containsAll(filter2));
+    assert filter2.add("baz");
+    assertTrue(filter.containsAll(filter2));
   }
 
   @Test
-  public void clearShouldRemovePreviouslyContainedElements() {
-    assert 0 == filter.size();
-    assert filter.add("foo");
-    assert 1 == filter.size();
-    assert filter.contains("foo");
-    filter.clear();
-    assertEquals(0, filter.size());
-    assertFalse(filter.contains("foo"));
+  public void containsAllProbabilisticFilterOfEThatIsNotFullyContainedShouldReturnFalse() {
+    assert filter.addAll(Arrays.asList("foo", "bar", "baz"));
+    assert filter2.addAll(Arrays.asList("foo", "bar", "boom"));
+    assertFalse(filter.containsAll(filter2));
+    assert filter2.add("baz");
+    assertFalse(filter.containsAll(filter2));
   }
 
   @Test
@@ -205,62 +123,6 @@ public class CuckooProbabilisticFilterTest {
   }
 
   @Test
-  public void containsEThatIsContainedShouldReturnTrue() {
-    assert filter.add("foo");
-    assertTrue(filter.contains("foo"));
-  }
-
-  @Test
-  public void containsEThatIsNotContainedShouldReturnFalse() {
-    assertFalse(filter.contains("bar"));
-  }
-
-  @Test(expected = NullPointerException.class)
-  public void containsNullShouldThrowNullPointerException() {
-    filter.contains(null);
-    fail();
-  }
-
-  @Test
-  public void containsAllCollectionOfEThatIsFullyContainedShouldReturnTrue() {
-    assert filter.addAll(Arrays.asList("foo", "bar", "baz"));
-    assertTrue(filter.containsAll(Arrays.asList("foo", "bar")));
-    assertTrue(filter.containsAll(Arrays.asList("foo", "bar", "baz")));
-  }
-
-  @Test
-  public void containsAllCollectionOfEThatIsNotFullyContainedShouldReturnFalse() {
-    assert filter.addAll(Arrays.asList("foo", "bar", "baz"));
-    assertFalse(filter.containsAll(Arrays.asList("foo", "bar", "boom")));
-    assertFalse(filter.containsAll(Arrays.asList("foo", "bar", "baz", "boom")));
-  }
-
-  @Test(expected = NullPointerException.class)
-  public void containsAllCollectionOfEContainingNullShouldThrowNullPointerException() {
-    assert filter.addAll(Arrays.asList("foo", "bar", "baz"));
-    filter.removeAll(Arrays.asList("foo", null));
-    fail();
-  }
-
-  @Test
-  public void containsAllProbabilisticFilterOfEThatIsFullyContainedShouldReturnTrue() {
-    assert filter.addAll(Arrays.asList("foo", "bar", "baz"));
-    assert filter2.addAll(Arrays.asList("foo", "bar"));
-    assertTrue(filter.containsAll(filter2));
-    assert filter2.add("baz");
-    assertTrue(filter.containsAll(filter2));
-  }
-
-  @Test
-  public void containsAllProbabilisticFilterOfEThatIsNotFullyContainedShouldReturnFalse() {
-    assert filter.addAll(Arrays.asList("foo", "bar", "baz"));
-    assert filter2.addAll(Arrays.asList("foo", "bar", "boom"));
-    assertFalse(filter.containsAll(filter2));
-    assert filter2.add("baz");
-    assertFalse(filter.containsAll(filter2));
-  }
-
-  @Test
   public void isEmpty() {
     assertTrue(filter.isEmpty());
     assert filter.add("foo");
@@ -297,13 +159,7 @@ public class CuckooProbabilisticFilterTest {
   }
 
   @Test
-  @Ignore
-  public void sizeLongReturnsLongMaxValueWhenFilterSizeExceedsLogMaxValue() {
-    fail("Test Not Implemented. Current filter impl can't be allocated at a sufficient size.");
-  }
-
-  @Test
-  public void testSize() {
+  public void size() {
     assertEquals(0, filter.size());
     assert filter.add("foo");
     assertEquals(1, filter.size());
@@ -318,21 +174,6 @@ public class CuckooProbabilisticFilterTest {
     assertEquals(3, filter.size());
     assert filter.removeAll(filter2);
     assertEquals(0, filter.size());
-  }
-
-  @Test @Ignore("Long execution times make me sad.")
-  public void sizeReturnsIntegerMaxValueWhenFilterSizeExceedsIntegerMaxValue() {
-    final CuckooFilter<String> bigFilter = bigFilter();
-    bigFilter.fill(new Random(1L));
-    assertTrue(bigFilter.sizeLong() > Integer.MAX_VALUE);
-    assertEquals(Integer.MAX_VALUE, bigFilter.size());
-  }
-
-  @Test
-  public void isCompatible() {
-    assertTrue(filter().isCompatible(filter()));
-    assertFalse(filter().isCompatible(tinyFilter()));
-    assertFalse(filter().isCompatible(objectFilter()));
   }
 
   @Test
@@ -351,17 +192,16 @@ public class CuckooProbabilisticFilterTest {
   @Test
   public void capacity() {
     assertEquals(1000007, filter.capacity());
-    assertEquals(1000003, CuckooFilter.create(Funnels.stringFunnel(UTF_8), 1000003, 0.9D).capacity());
+    assertEquals(1000003, filter(1000003, 0.9D).capacity());
 
     assertEquals(7, tinyFilter.capacity());
-    assertEquals(3, CuckooFilter.create(Funnels.stringFunnel(UTF_8), 3, 0.9D).capacity());
+    assertEquals(3, filter(3, 0.9D).capacity());
   }
 
   @Test
   public void fpp() {
     assertEquals(FILTER_FPP, filter.fpp(), FILTER_FPP * 0.1);
     assertEquals(TINY_FILTER_FPP, tinyFilter.fpp(), TINY_FILTER_FPP * 0.1);
-//    assertEquals(0.9D, tinyFilter.fpp());
   }
 
 }

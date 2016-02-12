@@ -287,11 +287,4 @@ class CuckooTable {
     Arrays.fill(data, 0L);
     size = 0L;
   }
-
-  public void fill(Random random) {
-    for (int i=0; i<data.length; i++) {
-      data[i] = random.nextLong();
-    }
-    size = capacity();
-  }
 }
