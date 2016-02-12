@@ -93,7 +93,6 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
   private final CuckooTable table;
   private final Funnel<? super E> funnel;
   private final CuckooStrategy cuckooStrategy;
-  private final long capacity;
   private final double fpp;
 
   /**
@@ -105,8 +104,6 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
     this.table = checkNotNull(table);
     this.funnel = checkNotNull(funnel);
     this.cuckooStrategy = checkNotNull(cuckooStrategy);
-    this.capacity = (long) Math.floor(table.capacity() *
-        optimalLoadFactor(table.numEntriesPerBucket()));
   }
 
   /**
@@ -401,11 +398,11 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    * @see #optimalLoadFactor(int)
    */
   public long capacity() {
-    return capacity;
+    return (long) Math.floor(table.capacity() * optimalLoadFactor(table.numEntriesPerBucket()));
   }
 
   /**
-   * Returns the intended {@code FPP} limit of this filter. This is not a hard limit, however a
+   * Returns the approximate {@code FPP} limit of this filter. This is not a hard limit, however a
    * cuckoo filter will not exceed its {@code FPP} by a significant amount as the filter becomes
    * saturated.
    *
@@ -413,7 +410,7 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    * @see #currentFpp()
    */
   public double fpp() {
-    return fpp;
+    return table.fppAtGivenLoad(optimalLoadFactor(table.numEntriesPerBucket()));
   }
 
   /**
@@ -524,8 +521,7 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
   static <T> CuckooFilter<T> create(Funnel<? super T> funnel, long capacity, double fpp,
                                     CuckooStrategy cuckooStrategy) {
     checkNotNull(funnel);
-    checkArgument(capacity > 0, "Expected insertions (%s) must be > 0",
-        capacity);
+    checkArgument(capacity > 0, "Expected insertions (%s) must be > 0", capacity);
     checkArgument(fpp > 0.0D, "False positive probability (%s) must be > 0.0", fpp);
     checkArgument(fpp < 1.0D, "False positive probability (%s) must be < 1.0", fpp);
     checkNotNull(cuckooStrategy);
@@ -716,7 +712,6 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
     final int numBitsPerEntry;
     final Funnel<? super T> funnel;
     final CuckooStrategy cuckooStrategy;
-    final long capacity;
     final double fpp;
 
     SerialForm(CuckooFilter<T> filter) {
@@ -728,7 +723,6 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
       this.checksum = filter.table.checksum();
       this.funnel = filter.funnel;
       this.cuckooStrategy = filter.cuckooStrategy;
-      this.capacity = filter.capacity;
       this.fpp = filter.fpp;
     }
 
@@ -751,7 +745,6 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
     /*
      * Serial form:
      * 1 signed byte for the strategy
-     * 1 big endian long, the number of capacity
      * 1 IEEE 754 floating-point double, the expected FPP
      * 1 big endian long, the number of entries in our filter
      * 1 big endian long, the checksum of entries in our filter
@@ -763,7 +756,6 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
      */
     DataOutputStream dout = new DataOutputStream(out);
     dout.writeByte(SignedBytes.checkedCast(cuckooStrategy.ordinal()));
-    dout.writeLong(capacity);
     dout.writeDouble(fpp);
     dout.writeLong(table.size());
     dout.writeLong(table.checksum());
@@ -792,7 +784,6 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
     checkNotNull(in, "InputStream");
     checkNotNull(funnel, "Funnel");
     int strategyOrdinal = -1;
-    long capacity = -1L;
     double fpp = -1.0D;
     long size = -1L;
     long checksum = -1L;
@@ -806,7 +797,6 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
       // add non-stateless strategies (for which we've reserved negative ordinals; see
       // Strategy.ordinal()).
       strategyOrdinal = din.readByte();
-      capacity = din.readLong();
       fpp = din.readDouble();
       size = din.readLong();
       checksum = din.readLong();
@@ -827,7 +817,6 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
       IOException ioException = new IOException(
           "Unable to deserialize CuckooFilter from InputStream."
               + " strategyOrdinal: " + strategyOrdinal
-              + " capacity: " + capacity
               + " fpp: " + fpp
               + " size: " + size
               + " checksum: " + checksum
@@ -861,7 +850,7 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
         "table=" + table +
         ", funnel=" + funnel +
         ", strategy=" + cuckooStrategy +
-        ", capacity=" + capacity +
+        ", capacity=" + capacity() +
         ", fpp=" + fpp +
         ", currentFpp=" + currentFpp() +
         ", size=" + sizeLong() +

@@ -19,12 +19,18 @@ import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
 public class CuckooProbabilisticFilterTest {
+  static final int FILTER_CAPACITY = 1000000;
+  static double FILTER_FPP = 0.002D;
   ProbabilisticFilter<String> filter;
   ProbabilisticFilter<String> filter2;
+
+  static final int TINY_FILTER_CAPACITY = 1;
+  static final double TINY_FILTER_FPP = 0.002D;
   ProbabilisticFilter<String> tinyFilter;
 
+
   private CuckooFilter<String> filter() {
-    return CuckooFilter.create(Funnels.stringFunnel(UTF_8), 1000000, 0.3D);
+    return CuckooFilter.create(Funnels.stringFunnel(UTF_8), FILTER_CAPACITY, FILTER_FPP);
   }
 
   private CuckooFilter<String> objectFilter() {
@@ -32,15 +38,15 @@ public class CuckooProbabilisticFilterTest {
       public void funnel(Object from, PrimitiveSink into) {
         into.putInt(from.hashCode());
       }
-    }, 1000000, 0.3D);
+    }, FILTER_CAPACITY, FILTER_FPP);
   }
 
   private CuckooFilter<String> tinyFilter() {
-    return CuckooFilter.create(Funnels.stringFunnel(UTF_8), 1, 0.9D);
+    return CuckooFilter.create(Funnels.stringFunnel(UTF_8), TINY_FILTER_CAPACITY, TINY_FILTER_FPP);
   }
 
   private CuckooFilter<String> bigFilter() {
-    return CuckooFilter.create(Funnels.stringFunnel(UTF_8), 10L + Integer.MAX_VALUE, 0.3D);
+    return CuckooFilter.create(Funnels.stringFunnel(UTF_8), 10L + Integer.MAX_VALUE, FILTER_FPP);
   }
 
   @Before
@@ -58,10 +64,9 @@ public class CuckooProbabilisticFilterTest {
 
   @Test
   public void addEShouldReturnFalseWhenFilterIsFull() {
-    assert tinyFilter.add("foo");
-    assert tinyFilter.add("bar");
-    assert tinyFilter.add("baz");
-    assert tinyFilter.add("boz");
+    for (int i = 0; i < tinyFilter.capacity() * 2; i++) {
+      tinyFilter.add("foo" + i);
+    }
     assertFalse(tinyFilter.add("bust"));
   }
 
@@ -91,7 +96,9 @@ public class CuckooProbabilisticFilterTest {
 
   @Test
   public void addAllCollectionOfEContainingTooManyItemsShouldReturnFalse() {
-    assertFalse(tinyFilter.addAll(Arrays.asList("foo", "bar", "baz", "boz", "foz")));
+    System.out.println(tinyFilter.capacity());
+    assertFalse(tinyFilter.addAll(Arrays.asList("foo", "bar", "baz", "boz", "foz", "biz", "fiz",
+        "fuz", "buz")));
   }
 
   @Test
@@ -343,17 +350,18 @@ public class CuckooProbabilisticFilterTest {
 
   @Test
   public void capacity() {
-    assertEquals(1000003, filter.capacity());
+    assertEquals(1000007, filter.capacity());
     assertEquals(1000003, CuckooFilter.create(Funnels.stringFunnel(UTF_8), 1000003, 0.9D).capacity());
 
-    assertEquals(3, tinyFilter.capacity());
+    assertEquals(7, tinyFilter.capacity());
     assertEquals(3, CuckooFilter.create(Funnels.stringFunnel(UTF_8), 3, 0.9D).capacity());
   }
 
   @Test
   public void fpp() {
-    assertEquals(0.3D, filter.fpp());
-    assertEquals(0.9D, tinyFilter.fpp());
+    assertEquals(FILTER_FPP, filter.fpp(), FILTER_FPP * 0.1);
+    assertEquals(TINY_FILTER_FPP, tinyFilter.fpp(), TINY_FILTER_FPP * 0.1);
+//    assertEquals(0.9D, tinyFilter.fpp());
   }
 
 }

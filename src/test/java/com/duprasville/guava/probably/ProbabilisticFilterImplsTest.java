@@ -34,7 +34,7 @@ public class ProbabilisticFilterImplsTest extends TestCase {
 
   public void testBloom() throws Exception {
     for (double fpp = 0.0000001; fpp < 0.1; fpp *= 10) {
-      for (int capacity = 100; capacity <= 10000; capacity *= 10) {
+      for (int capacity = 100; capacity <= 100000; capacity *= 10) {
         basicTests(
             BloomFilter.create(Funnels.stringFunnel(UTF_8), capacity, fpp),
             capacity, fpp);
@@ -44,7 +44,7 @@ public class ProbabilisticFilterImplsTest extends TestCase {
 
   public void testCuckoo() throws Exception {
     for (double fpp = 0.0000001; fpp < 0.1; fpp *= 10) {
-      for (int capacity = 100; capacity <= 10000; capacity *= 10) {
+      for (int capacity = 100; capacity <= 100000; capacity *= 10) {
         basicTests(CuckooFilter.create(
             Funnels.stringFunnel(UTF_8), capacity, fpp,
             CuckooStrategies.MURMUR128_BEALDUPRAS_32.strategy()), capacity, fpp);
@@ -59,7 +59,7 @@ public class ProbabilisticFilterImplsTest extends TestCase {
 
     assertEquals("expectedFpp should be 0 when filter is empty", 0.0D, filter.currentFpp());
 
-    assertFalse("mightContain should return false when filter is empty",
+    assertFalse("contains should return false when filter is empty",
         filter.contains("Nope"));
 
     assertTrue("put should return true when inserting the first item", filter.add("Yep!"));
@@ -72,14 +72,14 @@ public class ProbabilisticFilterImplsTest extends TestCase {
       if (filter.add(Integer.toString(i))) {
         assertTrue("expectedFpp should not decrease after put returns true",
             filter.currentFpp() >= expectedFppBefore);
+
+        assertTrue("contains should return true when queried with an inserted item",
+            filter.contains(Integer.toString(i)));
       } else {
         falseInsertions++;
         assertEquals("expectedFpp should not change after put returns false",
             expectedFppBefore, filter.currentFpp());
       }
-
-      assertTrue("mightContain should return true when queried with an inserted item",
-          filter.contains(Integer.toString(i)));
     }
 
     // fill up the filter until put has returned `true` numInsertion times in total
@@ -96,7 +96,7 @@ public class ProbabilisticFilterImplsTest extends TestCase {
         "expectedFpp should be, approximately, at least the half the requested fpp after " +
             "inserting the requested number of items: " + capacity + ", " + fpp)
         .that(filter.currentFpp())
-        .isAtLeast(fpp * 0.5);
+        .isAtLeast(fpp * 0.65);
   }
 
 }

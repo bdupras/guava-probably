@@ -250,17 +250,17 @@ class CuckooTable {
     return (double) size() / (double) capacity();
   }
 
-  public double expectedFpp() {
-    return (2.0D * size / numBuckets) / pow(2, numBitsPerEntry);
+  public double currentFpp() {
+    return fppAtGivenLoad(load());
   }
 
-  public double currentFpp() {
+  public double fppAtGivenLoad(double load) {
     return 1.0D - pow(
         ( pow(2, numBitsPerEntry) - 2 )
-        /
-        ( pow(2, numBitsPerEntry) - 1 )
+            /
+            ( pow(2, numBitsPerEntry) - 1 )
         ,
-        2 * numEntriesPerBucket * load()
+        2 * numEntriesPerBucket * load
     );
   }
 
@@ -276,7 +276,6 @@ class CuckooTable {
         ", byteSize=" + bitSize() / Byte.SIZE +
         ", load=" + load() +
         ", capacity=" + capacity() +
-        ", expectedFpp=" + expectedFpp() +
         ", averageBitsPerEntry=" + averageBitsPerEntry() +
         ", numBuckets=" + numBuckets +
         ", numEntriesPerBucket=" + numEntriesPerBucket +
