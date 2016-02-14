@@ -81,9 +81,19 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
   /**
    * Minimum false positive probability supported, 8.67E-19.
    *
-   * @todo not sure MIN_FPP calculation is correct
+   * CuckooFilter § 5.1 Eq. (6), "f ≥ log2(2b/e) = [log2(1/e) + log2(2b)]"
+   * (b) entries per bucket: 8 at e <= 0.00001
+   * (f) bits per entry: 64-bits max
+   * (e) false positive probability
+   *
+   * 64 = log2(16/e) = [log2(1/e) + log2(16)]
+   * 64 = log2(1/e) + 4
+   * 60 = log2(1/e)
+   * 2^60 = 1/e
+   * e = 1/2^60
+   * e = 8.673617379884035E-19
    */
-  static double MIN_FPP = 2.0D * MAX_ENTRIES_PER_BUCKET / pow(2, Long.SIZE);
+  static double MIN_FPP = 1.0D / pow(2, 60);
 
   /**
    * Maximum false positive probability supported, 0.99.

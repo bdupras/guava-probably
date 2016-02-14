@@ -2,7 +2,6 @@ Guava-Probably: TODO List
 =======================================================
 
 =1.0
-* double-check CuckooFilter.MIN_FPP value - calculation seems wrong
 * bump to most recent version of Guava and true-up Bloom filter API for longs?
 
 ==CI
