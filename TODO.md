@@ -2,8 +2,6 @@ Guava-Probably: TODO List
 =======================================================
 
 =1.0
-* Serializable interface tests on BloomFilter
-* Serializable interface tests on CuckooFilter
 * double-check CuckooFilter.MIN_FPP value - calculation seems wrong
 * bump to most recent version of Guava and true-up Bloom filter API for longs?
 

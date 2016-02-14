@@ -24,8 +24,6 @@ import com.google.common.testing.EqualsTester;
 import com.google.common.testing.NullPointerTester;
 import com.google.common.testing.SerializableTester;
 
-import junit.framework.TestCase;
-
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -44,11 +42,11 @@ import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
 /**
- * Tests for CuckooFilter.
- *
- * Modified from existing tests for BloomFilter.
+ * CuckooFilter tests of Object method overrides, static methods, and serialization. Modified from
+ * Guava tests for BloomFilter.
  *
  * @author Brian Dupras
+ * @author The Guava Authors (original BloomFilter tests)
  */
 public class CuckooFilterTest {
   @Test
@@ -77,7 +75,7 @@ public class CuckooFilterTest {
       }
     }
 
-    // Check that there are exactly 29824 false positives for this CF.
+    // Check that there are exactly 25926 false positives for this CF.
     int expectedNumFpp = 25926;
     int actualNumFpp = 0;
     for (int i = 1; i < numInsertions * 2; i += 2) {
@@ -177,7 +175,6 @@ public class CuckooFilterTest {
     }
   }
 
-  @SuppressWarnings("CheckReturnValue")
   @Test
   public void failureWhenMoreThan64BitFingerprintsAreNeeded() {
     try {

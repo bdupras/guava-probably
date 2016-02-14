@@ -15,7 +15,7 @@
 
 package com.duprasville.guava.probably;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
 import java.util.Random;
 
@@ -24,14 +24,17 @@ import static com.duprasville.guava.probably.CuckooStrategies.values;
 import static com.duprasville.guava.probably.CuckooTable.readBits;
 import static com.duprasville.guava.probably.CuckooTable.writeBits;
 import static com.google.common.truth.Truth.assertThat;
+import static junit.framework.Assert.assertEquals;
 
 /**
- * Tests for CuckooFilterStrategies.
+ * CuckooFilterStrategies tests. These are tests of internal, though somewhat complex,
+ * implementation details of cuckoo filters.
  *
  * @author Brian Dupras
  */
-public class CuckooStrategiesTest extends TestCase {
-  public void testFingerprintBoundaries() throws Exception {
+public class CuckooStrategiesTest {
+  @Test
+  public void fingerprintBoundaries() throws Exception {
     assertThat(CuckooStrategyMurmurBealDupras32.fingerprint(0x80000000, 1)).isEqualTo(0x01);
     assertThat(CuckooStrategyMurmurBealDupras32.fingerprint(0xC0000000, 2)).isEqualTo(0x03);
     assertThat(CuckooStrategyMurmurBealDupras32.fingerprint(0xE0000000, 3)).isEqualTo(0x04);
@@ -43,7 +46,8 @@ public class CuckooStrategiesTest extends TestCase {
     }
   }
 
-  public void testIndexIsModuloM() throws Exception {
+  @Test
+  public void indexIsModuloM() throws Exception {
     final int min = Integer.MIN_VALUE;
     final int max = Integer.MAX_VALUE;
     final int incr = 100000;
@@ -56,7 +60,8 @@ public class CuckooStrategiesTest extends TestCase {
     }
   }
 
-  public void testAltIndexIsReversible() throws Exception {
+  @Test
+  public void altIndexIsReversible() throws Exception {
     final long max = Long.MAX_VALUE - 1L; // must be even!
     final long incr = 1000000L;
     final Random random = new Random(1L);
@@ -75,12 +80,14 @@ public class CuckooStrategiesTest extends TestCase {
    * This test will fail whenever someone updates/reorders the BloomFilterStrategies constants. Only
    * appending a new constant is allowed.
    */
-  public void testCuckooFilterStrategies() {
+  @Test
+  public void cuckooFilterStrategies() {
     assertThat(values()).hasLength(1);
     assertEquals(MURMUR128_BEALDUPRAS_32, values()[0]);
   }
 
-  public void testWriteBits() throws Exception {
+  @Test
+  public void writeBits_() throws Exception {
     long[] data;
 
     data = new long[]{0xfafafafafafafafal, 0xfafafafafafafafal};
@@ -119,7 +126,8 @@ public class CuckooStrategiesTest extends TestCase {
     assertEquals(0xABCDfafafafafafal, data[1]);
   }
 
-  public void testReadBits() throws Exception {
+  @Test
+  public void readBits_() throws Exception {
     assertEquals(0xABCD, readBits(new long[]{0x000000000000ABCDL, 0x00000000000000FFL}, 0, 16));
     assertEquals(0xABCD, readBits(new long[]{0x0000ABCD00000000L, 0x00000000000000FFL}, 32, 16));
     assertEquals(0xABCD, readBits(new long[]{0xABCD000000000000L, 0x00000000000000FFL}, 48, 16));

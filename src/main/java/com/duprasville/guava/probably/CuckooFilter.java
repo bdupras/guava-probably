@@ -742,13 +742,13 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
      * Serial form:
      * 1 signed byte for the strategy
      * 1 IEEE 754 floating-point double, the expected FPP
-     * 1 big endian long, the number of entries in our filter
-     * 1 big endian long, the checksum of entries in our filter
+     * 1 big endian long, the number of entries
+     * 1 big endian long, the checksum of entries
      * 1 big endian long for the number of buckets
      * 1 big endian int for the number of entries per bucket
      * 1 big endian int for the fingerprint size in bits
-     * 1 big endian int, the number of longs in our table's data
-     * N big endian longs of our table's data
+     * 1 big endian int, the number of longs in the filter table's data
+     * N big endian longs of the filter table's data
      */
     DataOutputStream dout = new DataOutputStream(out);
     dout.writeByte(SignedBytes.checkedCast(cuckooStrategy.ordinal()));

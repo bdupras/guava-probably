@@ -12,7 +12,12 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
-public class CuckooProbabilisticFilterTest extends AbstractProbabilisticFilterTest {
+/**
+ * CuckooFilter tests of ProbabilisticFilter interface implementations.
+ *
+ * @author Brian Dupras
+ */
+public class CuckooFilterProbabilisticFilterTest extends AbstractProbabilisticFilterTest {
   ProbabilisticFilter<CharSequence> filter(int capacity, double fpp) {
     return CuckooFilter.create(Funnels.stringFunnel(UTF_8), capacity, fpp);
   }

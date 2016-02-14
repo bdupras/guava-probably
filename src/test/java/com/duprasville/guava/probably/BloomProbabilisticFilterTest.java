@@ -13,6 +13,11 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
+/**
+ * BloomFilter tests of ProbabilisticFilter interface implementations.
+ *
+ * @author Brian Dupras
+ */
 public class BloomProbabilisticFilterTest extends AbstractProbabilisticFilterTest {
   ProbabilisticFilter<CharSequence> filter(int capacity, double fpp) {
     return BloomFilter.create(Funnels.stringFunnel(UTF_8), capacity, fpp);

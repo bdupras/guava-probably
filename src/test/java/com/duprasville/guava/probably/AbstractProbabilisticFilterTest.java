@@ -15,6 +15,11 @@ import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
 
+/**
+ * Common tests of ProbabilisticFilter interface implementations.
+ *
+ * @author Brian Dupras
+ */
 public abstract class AbstractProbabilisticFilterTest {
   abstract ProbabilisticFilter<CharSequence> filter(int capacity, double fpp);
 
@@ -218,4 +223,7 @@ public abstract class AbstractProbabilisticFilterTest {
         .that(filter.currentFpp())
         .isAtLeast(fpp * 0.65);
   }
+
+
+
 }
