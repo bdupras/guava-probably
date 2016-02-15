@@ -4,14 +4,11 @@ import com.google.common.hash.Funnels;
 
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
 
 /**
  * BloomFilter tests of ProbabilisticFilter interface implementations.

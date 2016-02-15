@@ -485,4 +485,21 @@ public class CuckooFilterTest {
     }
   };
 
+  @Test
+  public void ensureGeneric() {
+    class SuperClass {
+    }
+    class SubClass extends SuperClass {
+    }
+
+    CuckooFilter<SuperClass> filter = CuckooFilter.create(
+        new Funnel<SuperClass>() {
+          public void funnel(SuperClass from, PrimitiveSink into) {
+            into.putInt(from.hashCode());
+          }
+        }, 1000, 0.03D);
+
+    assertTrue(filter.add(new SuperClass()));
+    assertTrue(filter.add(new SubClass()));
+  }
 }

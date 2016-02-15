@@ -32,7 +32,7 @@ public enum CuckooStrategies {
    * comparable to a Bloom Filter's memory efficiency, supports entry deletion, and can accept up to
    * 12.8 billion entries at 3% FPP.
    *
-   * <p>This strategy uses 64 bits of {@link Hashing#murmur3_128} to find an entry's primary index.
+   * <p>This strategy uses 32 bits of {@link Hashing#murmur3_128} to find an entry's primary index.
    * The next non-zero f-bit segment of the hash is used as the entry's fingerprint. An entry's
    * alternate index is defined as {@code [hash(fingerprint) * parsign(index)] modulo bucket_count},
    * where {@code hash(fingerprint)} is always odd, and {@code parsign(index)} is defined as {@code
