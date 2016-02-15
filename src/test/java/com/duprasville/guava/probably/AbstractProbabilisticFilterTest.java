@@ -192,18 +192,18 @@ public abstract class AbstractProbabilisticFilterTest {
     int falseInsertions = 0;
 
     for (int i = 0; i < capacity - 1; i++) { //minus 1 since we've already inserted one above
-      double expectedFppBefore = filter.currentFpp();
+      double currentFppBefore = filter.currentFpp();
 
       if (filter.add(Integer.toString(i))) {
-        assertTrue("expectedFpp should not decrease after put returns true",
-            filter.currentFpp() >= expectedFppBefore);
+        assertTrue("currentFpp should not decrease after put returns true",
+            filter.currentFpp() >= currentFppBefore);
 
         assertTrue("contains should return true when queried with an inserted item",
             filter.contains(Integer.toString(i)));
       } else {
         falseInsertions++;
-        assertEquals("expectedFpp should not change after put returns false",
-            expectedFppBefore, filter.currentFpp());
+        assertEquals("currentFpp should not change after put returns false",
+            currentFppBefore, filter.currentFpp());
       }
     }
 
@@ -212,18 +212,15 @@ public abstract class AbstractProbabilisticFilterTest {
     while (filter.add(Integer.toString(random.nextInt())) && (--falseInsertions > 0)) ;
 
     assertWithMessage(
-        "expectedFpp should be, approximately, at most the requested fpp after inserting the " +
+        "currentFpp should be, approximately, at most the requested fpp after inserting the " +
             "requested number of items")
         .that(filter.currentFpp())
-        .isAtMost(fpp * 1.2);
+        .isAtMost(fpp * 1.3);
 
     assertWithMessage(
-        "expectedFpp should be, approximately, at least the half the requested fpp after " +
+        "currentFpp should be, approximately, at least the half the requested fpp after " +
             "inserting the requested number of items: " + capacity + ", " + fpp)
         .that(filter.currentFpp())
         .isAtLeast(fpp * 0.65);
   }
-
-
-
 }

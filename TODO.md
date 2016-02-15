@@ -2,7 +2,6 @@ Guava-Probably: TODO List
 =======================================================
 
 =1.0
-* bump to most recent version of Guava and true-up Bloom filter API for longs?
 
 ==CI
 * commit/push to release SNAPSHOT, major, minor, patch :: maven central && javadocs

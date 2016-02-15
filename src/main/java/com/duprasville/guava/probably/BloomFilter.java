@@ -95,7 +95,7 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
    * double)</a>
    */
   @CheckReturnValue
-  public static <T> BloomFilter<T> create(Funnel<T> funnel, int capacity, double fpp) {
+  public static <T> BloomFilter<T> create(Funnel<T> funnel, long capacity, double fpp) {
     return new BloomFilter<T>(
         com.google.common.hash.BloomFilter.create(funnel, capacity, fpp),
         funnel, capacity, fpp, 0L);
@@ -123,7 +123,7 @@ public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializabl
    * int)">com.google.common.hash.BloomFilter#create(com.google.common.hash.Funnel, int)</a> </a>
    */
   @CheckReturnValue
-  public static <T> BloomFilter<T> create(Funnel<T> funnel, int capacity) {
+  public static <T> BloomFilter<T> create(Funnel<T> funnel, long capacity) {
     return new BloomFilter<T>(
         com.google.common.hash.BloomFilter.create(funnel, capacity, 0.03D),
         funnel, capacity, 0.03D, 0L);

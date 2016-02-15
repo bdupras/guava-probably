@@ -83,17 +83,17 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>16.0.1</version>
+      <version>19.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava-testlib</artifactId>
-      <version>16.0.1</version>
+      <version>19.0</version>
     </dependency>
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava-tests</artifactId>
-      <version>16.0.1</version>
+      <version>19.0</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

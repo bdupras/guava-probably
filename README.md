@@ -8,7 +8,7 @@ Guava-Probably: Probabilistic data structures for Guava
 
 The Guava-Probably project provides several probabilistic data structures for Guava.
 
-Requires JDK 1.6 or higher and Google Guava 16.0.1 or higher (as of 1.0).
+Requires JDK 1.6 or higher and Google Guava 19.0 or higher (as of 1.0).
 
 
 Latest release

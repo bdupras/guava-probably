@@ -496,27 +496,6 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
    * @param funnel   the funnel of T's that the constructed {@link CuckooFilter} will use
    * @param capacity the number of expected insertions to the constructed {@link CuckooFilter}; must
    *                 be positive
-   * @param fpp      the desired false positive probability (must be positive and less than 1.0)
-   * @return a {@link CuckooFilter}
-   */
-  @CheckReturnValue
-  public static <T> CuckooFilter<T> create(
-      Funnel<? super T> funnel, int capacity, double fpp) {
-    return create(funnel, (long) capacity, fpp);
-  }
-
-  /**
-   * Creates a filter with the expected number of insertions and expected false positive
-   * probability. <p/> <p>Note that overflowing a {@link CuckooFilter} with significantly more
-   * objects than specified, will result in its saturation causing {@link #add(Object)} to reject
-   * new additions. <p/> <p>The constructed {@link CuckooFilter} will be serializable if the
-   * provided {@code Funnel<T>} is. <p/> <p>It is recommended that the funnel be implemented as a
-   * Java enum. This has the benefit of ensuring proper serialization and deserialization, which is
-   * important since {@link #equals} also relies on object identity of funnels.
-   *
-   * @param funnel   the funnel of T's that the constructed {@link CuckooFilter} will use
-   * @param capacity the number of expected insertions to the constructed {@link CuckooFilter}; must
-   *                 be positive
    * @param fpp      the desired false positive probability (must be positive and less than 1.0).
    * @return a {@link CuckooFilter}
    */
@@ -548,25 +527,6 @@ public final class CuckooFilter<E> implements ProbabilisticFilter<E>, Serializab
           " buckets, " + numEntriesPerBucket + " entries per bucket, " + numBitsPerEntry +
           " bits per entry", e);
     }
-  }
-
-  /**
-   * Creates a filter with the expected number of insertions and a default expected false positive
-   * probability of 3.2%. <p/> <p>Note that overflowing a {@code CuckooFilter} with significantly
-   * more objects than specified, will result in its saturation causing {@link #add(Object)} to
-   * reject new additions. <p/> <p>The constructed {@link CuckooFilter} will be serializable if the
-   * provided {@code Funnel<T>} is. <p/> <p>It is recommended that the funnel be implemented as a
-   * Java enum. This has the benefit of ensuring proper serialization and deserialization, which is
-   * important since {@link #equals} also relies on object identity of funnels.
-   *
-   * @param funnel   the funnel of T's that the constructed {@link CuckooFilter} will use
-   * @param capacity the number of expected insertions to the constructed {@link CuckooFilter}; must
-   *                 be positive
-   * @return a {@link CuckooFilter}
-   */
-  @CheckReturnValue
-  public static <T> CuckooFilter<T> create(Funnel<? super T> funnel, int capacity) {
-    return create(funnel, (long) capacity);
   }
 
   /**
