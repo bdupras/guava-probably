@@ -27,7 +27,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * A Bloom filter for instances of {@code T} that implements the {@link ProbabilisticFilter}
+ * A Bloom filter for instances of {@code E} that implements the {@link ProbabilisticFilter}
  * interface.
  *
  * <p>This implementation is backed by Google Guava's <a target="guavadoc"
@@ -45,20 +45,20 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * that {@link #contains(Object)} will erroneously return {@code true} for an object that has not
  * actually been put in the {@link BloomFilter}. </blockquote>
  *
- * @param <T> the type of instances that the {@link BloomFilter} accepts.
+ * @param <E> the type of instances that the {@link BloomFilter} accepts.
  * @author Brian Dupras
  * @author Guava Authors (underlying BloomFilter implementation)
  * @see <a target="guavadoc" href="http://google.github.io/guava/releases/snapshot/api/docs/com/google/common/hash/BloomFilter.html">com.google.common.hash.BloomFilter</a>
  * @see ProbabilisticFilter
  */
-public final class BloomFilter<T> implements ProbabilisticFilter<T>, Serializable {
-  private com.google.common.hash.BloomFilter<T> delegate;
-  private final Funnel<T> funnel;
+public final class BloomFilter<E> implements ProbabilisticFilter<E>, Serializable {
+  private com.google.common.hash.BloomFilter<E> delegate;
+  private final Funnel<E> funnel;
   private final long capacity;
   private final double fpp;
   private long size;
 
-  private BloomFilter(com.google.common.hash.BloomFilter<T> delegate, Funnel<T> funnel, long capacity, double fpp, long size) {
+  private BloomFilter(com.google.common.hash.BloomFilter<E> delegate, Funnel<E> funnel, long capacity, double fpp, long size) {
     super();
     checkNotNull(delegate);
     checkNotNull(funnel);
@@ -133,7 +133,7 @@ public final class BloomFilter<T> implements ProbabilisticFilter<T>, Serializabl
    * Adds the specified element to this filter. A return value of {@code true} ensures that {@link
    * #contains(Object)} given {@code e} will also return {@code true}.
    *
-   * @param t element to be added to this filter
+   * @param e element to be added to this filter
    * @return always {@code true} as {@code com.google.common.hash.BloomFilter} cannot fail to add an
    * object
    * @throws NullPointerException if the specified element is null
@@ -142,9 +142,9 @@ public final class BloomFilter<T> implements ProbabilisticFilter<T>, Serializabl
    * @see #addAll(ProbabilisticFilter)
    * @see <a target="guavadoc" href="http://google.github.io/guava/releases/snapshot/api/docs/com/google/common/hash/BloomFilter.html#put(T)">com.google.common.hash.BloomFilter#put(T)</a>
    */
-  public boolean add(T t) {
-    checkNotNull(t);
-    delegate.put(t);
+  public boolean add(E e) {
+    checkNotNull(e);
+    delegate.put(e);
     size = LongMath.checkedAdd(size, 1L);
     return true;
   }
@@ -163,7 +163,7 @@ public final class BloomFilter<T> implements ProbabilisticFilter<T>, Serializabl
    * @see #addAll(Collection)
    * @see #contains(Object)
    */
-  public boolean addAll(ProbabilisticFilter<T> f) {
+  public boolean addAll(ProbabilisticFilter<E> f) {
     checkNotNull(f);
     checkArgument(this != f, "Cannot combine a " + this.getClass().getSimpleName() +
         " with itself.");
@@ -173,7 +173,7 @@ public final class BloomFilter<T> implements ProbabilisticFilter<T>, Serializabl
         this.getClass().getSimpleName() + " instances must have equivalent funnels; the same " +
         "strategy; and the same number of buckets, entries per bucket, and bits per entry.");
 
-    delegate.putAll(((BloomFilter<T>) f).delegate);
+    delegate.putAll(((BloomFilter<E>) f).delegate);
     size = LongMath.checkedAdd(size, f.sizeLong());
     return true;
   }
@@ -192,11 +192,11 @@ public final class BloomFilter<T> implements ProbabilisticFilter<T>, Serializabl
    * @see #addAll(ProbabilisticFilter)
    * @see #contains(Object)
    */
-  public boolean addAll(Collection<? extends T> c) {
+  public boolean addAll(Collection<? extends E> c) {
     checkNotNull(c);
-    for (T t : c) {
+    for (E e : c) {
       checkNotNull(c);
-      add(t);
+      add(e);
     }
     return true;
   }
@@ -205,7 +205,7 @@ public final class BloomFilter<T> implements ProbabilisticFilter<T>, Serializabl
    * Returns {@code true} if this filter <i>might</i> contain the specified element, {@code false}
    * if this is <i>definitely</i> not the case.
    *
-   * @param t element whose containment in this filter is to be tested
+   * @param e element whose containment in this filter is to be tested
    * @return {@code true} if this filter <i>might</i> contain the specified element, {@code false}
    * if this is <i>definitely</i> not the case.
    * @throws ClassCastException   if the type of the specified element is incompatible with this
@@ -218,8 +218,8 @@ public final class BloomFilter<T> implements ProbabilisticFilter<T>, Serializabl
    * @see #remove(Object)
    * @see <a target="guavadoc" href="http://google.github.io/guava/releases/snapshot/api/docs/com/google/common/hash/BloomFilter.html#mightContain(T)">com.google.common.hash.BloomFilter#mightContain(T)</a>
    */
-  public boolean contains(T t) {
-    return delegate.mightContain(t);
+  public boolean contains(E e) {
+    return delegate.mightContain(e);
   }
 
   /**
@@ -252,10 +252,10 @@ public final class BloomFilter<T> implements ProbabilisticFilter<T>, Serializabl
    * @see #removeAll(ProbabilisticFilter)
    * @see <a target="guavadoc" href="http://google.github.io/guava/releases/snapshot/api/docs/com/google/common/hash/BloomFilter.html#isCompatible(com.google.common.hash.BloomFilter)">com.google.common.hash.BloomFilter#isCompatible(com.google.common.hash.BloomFilter)</a>
    */
-  public boolean isCompatible(ProbabilisticFilter<T> f) {
+  public boolean isCompatible(ProbabilisticFilter<E> f) {
     checkNotNull(f);
     return (f instanceof BloomFilter) &&
-        this.delegate.isCompatible(((BloomFilter<T>) f).delegate);
+        this.delegate.isCompatible(((BloomFilter<E>) f).delegate);
   }
 
   /**
@@ -271,11 +271,11 @@ public final class BloomFilter<T> implements ProbabilisticFilter<T>, Serializabl
    * @see #contains(Object)
    * @see #containsAll(ProbabilisticFilter)
    */
-  public boolean containsAll(Collection<? extends T> c) {
+  public boolean containsAll(Collection<? extends E> c) {
     checkNotNull(c);
-    for (T t : c) {
-      checkNotNull(t);
-      if (!contains(t)) return false;
+    for (E e : c) {
+      checkNotNull(e);
+      if (!contains(e)) return false;
     }
     return true;
   }
@@ -285,7 +285,7 @@ public final class BloomFilter<T> implements ProbabilisticFilter<T>, Serializabl
    *
    * @throws UnsupportedOperationException
    */
-  public boolean containsAll(ProbabilisticFilter<T> f) {
+  public boolean containsAll(ProbabilisticFilter<E> f) {
     throw new UnsupportedOperationException();
   }
 
@@ -375,7 +375,7 @@ public final class BloomFilter<T> implements ProbabilisticFilter<T>, Serializabl
    *
    * @throws UnsupportedOperationException
    */
-  public boolean remove(T t) {
+  public boolean remove(E e) {
     throw new UnsupportedOperationException();
   }
 
@@ -384,7 +384,7 @@ public final class BloomFilter<T> implements ProbabilisticFilter<T>, Serializabl
    *
    * @throws UnsupportedOperationException
    */
-  public boolean removeAll(Collection<? extends T> c) {
+  public boolean removeAll(Collection<? extends E> c) {
     throw new UnsupportedOperationException();
   }
 
@@ -393,7 +393,7 @@ public final class BloomFilter<T> implements ProbabilisticFilter<T>, Serializabl
    *
    * @throws UnsupportedOperationException
    */
-  public boolean removeAll(ProbabilisticFilter<T> f) {
+  public boolean removeAll(ProbabilisticFilter<E> f) {
     throw new UnsupportedOperationException();
   }
 
