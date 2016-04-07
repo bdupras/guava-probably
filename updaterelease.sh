@@ -28,7 +28,7 @@ projectname=guava-probably
 
 # Ensure working dir is the root of the git repo and load util functions.
 cd $(dirname $0)
-source _util/util.sh
+source util/util.sh
 
 ensure_no_uncommitted_changes
 
