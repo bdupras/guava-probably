@@ -163,7 +163,7 @@ class CuckooStrategyMurmurBealDupras32 extends AbstractCuckooStrategy implements
    */
   @Override
   public long altIndex(long index, int fingerprint, long m) {
-    checkArgument(0L <= index, "index must be a positive even number!");
+    checkArgument(0L <= index, "index must be a positive!");
     checkArgument((0L <= m) && (0L == (m & 0x1L)), "m must be a positive even number!");
     return mod(protectedSum(index, parsign(index) * odd(hash(fingerprint)), m), m);
   }
