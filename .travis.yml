@@ -3,7 +3,10 @@ jdk:
 - oraclejdk8
 - openjdk8
 install: mvn install -U -DskipTests=true
-script: mvn verify -U -Dmaven.javadoc.skip=true
+script:
+  - mvn verify -U -Dmaven.javadoc.skip=true
+  # avoid unnecessary cache updates
+  - rm -rf $HOME/.m2/repository/com/duprasville/guava/guava-probably
 after_success:
 - util/update_snapshot_docs.sh
 - util/deploy_snapshot.sh
