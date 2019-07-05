@@ -22,7 +22,7 @@ function current_git_ref {
 
 # Returns the version of the project at the current revision, pulled from Maven.
 function project_version {
-  mvn org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate \
+  mvn -B org.apache.maven.plugins:maven-help-plugin:2.1.1:evaluate \
       -Dexpression=project.version \
       | grep -Ev '(^\[|Download\w+:)'
 }

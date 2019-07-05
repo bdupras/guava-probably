@@ -28,7 +28,7 @@ projectname=guava-probably
 
 # Ensure working dir is the root of the git repo and load util functions.
 cd $(dirname $0)
-source _util/util.sh
+source util/util.sh
 
 ensure_no_uncommitted_changes
 
@@ -121,7 +121,7 @@ else
   # The release being updated currently may not be the latest release.
   version=$(latest_release)
 fi
-sed -i'.bak' -e "s/$fieldtoupdate:[ ]+.+/$fieldtoupdate: $version/g" _config.yml
+sed -i'.bak' -e "s/^$fieldtoupdate:[ ]+.+/$fieldtoupdate: $version/g" _config.yml
 if [ -e _config.yml.bak ]; then
   rm _config.yml.bak
 fi

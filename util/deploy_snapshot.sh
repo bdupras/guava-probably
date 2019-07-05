@@ -4,8 +4,8 @@
 
 set -e -u
 
-if [ "$TRAVIS_REPO_SLUG" == "duprasville/guava-probably" ] && \
-   [ "$TRAVIS_JDK_VERSION" == "oraclejdk7" ] && \
+if [ "$TRAVIS_REPO_SLUG" == "bdupras/guava-probably" ] && \
+   [ "$TRAVIS_JDK_VERSION" == "oraclejdk8" ] && \
    [ "$TRAVIS_PULL_REQUEST" == "false" ] && \
    [ "$TRAVIS_BRANCH" == "master" ]; then
   echo "Publishing Maven snapshot..."
