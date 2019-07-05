@@ -121,7 +121,7 @@ else
   # The release being updated currently may not be the latest release.
   version=$(latest_release)
 fi
-sed -i'.bak' -e "s/$fieldtoupdate:[ ]+.+/$fieldtoupdate: $version/g" _config.yml
+sed -i'.bak' -e "s/^$fieldtoupdate:[ ]+.+/$fieldtoupdate: $version/g" _config.yml
 if [ -e _config.yml.bak ]; then
   rm _config.yml.bak
 fi
