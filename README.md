@@ -3,6 +3,8 @@ Guava-Probably: Probabilistic Filters
 The Guava-Probably project provides two probabilistic filters for Guava.
 
 [![Build Status](https://travis-ci.org/bdupras/guava-probably.svg?branch=master)](https://travis-ci.org/bdupras/guava-probably)
+[![GitHub license](https://img.shields.io/github/license/bdupras/guava-probably.svg)](./LICENSE)
+[![Maven Central](https://img.shields.io/maven-central/v/com.duprasville.guava/guava-probably.svg)](https://maven-badges.herokuapp.com/maven-central/com.duprasville.guava/guava-probably)
 
 # What is it?
 A probabilistic filter is a space-efficient data structure for representing a set in order to support membership queries. [ref][BroderMitzenmacher]
@@ -20,21 +22,21 @@ Probabilistic filters are great for reducing unnecessary disk, database or netwo
 
 # Cool, how do I get it?
 Requires JDK 8 or higher and Google Guava 19.0 or higher (as of 1.0).
-- `1.0-SNAPSHOT`: [API Docs][guava-probably-snapshot-api-docs], 30 December 2015.
+- `1.0`: [API Docs][guava-probably-snapshot-api-docs], 05 July 2019.
 
 To add a dependency on Guava-Probably using Maven, use the following:
 ```xml
 <dependency>
   <groupId>com.duprasville.guava</groupId>
   <artifactId>guava-probably</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.0</version>
 </dependency>
 ```
 
 To add a dependency using Gradle:
 ```
 dependencies {
-  compile 'com.duprasville.guava:guava-probably:1.0-SNAPSHOT'
+  compile 'com.duprasville.guava:guava-probably:1.0'
 }
 ```
 
