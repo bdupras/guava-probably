@@ -19,7 +19,7 @@ Probabilistic filters are great for reducing unnecessary disk, database or netwo
 - Use a p-filter to reject malicious authentication attempts, protecting your cache and database from botnet queries.
 
 # Cool, how do I get it?
-Requires JDK 1.6 or higher and Google Guava 19.0 or higher (as of 1.0).
+Requires JDK 8 or higher and Google Guava 19.0 or higher (as of 1.0).
 - `1.0-SNAPSHOT`: [API Docs][guava-probably-snapshot-api-docs], 30 December 2015.
 
 To add a dependency on Guava-Probably using Maven, use the following:
